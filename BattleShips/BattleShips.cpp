@@ -35,6 +35,12 @@ constexpr int no_record{ 2001 };
 constexpr int first_record{ 2002 };
 constexpr int record{ 2003 };
 
+
+constexpr int key1{ 49 };
+constexpr int key2{ 50 };
+constexpr int key3{ 51 };
+constexpr int key4{ 52 };
+
 ////////////////////////////////////////////////
 
 WNDCLASS bWinClass{};
@@ -82,6 +88,21 @@ bool first_player_turn = true;
 int score1 = 0;
 int score2 = 0;
 
+bool min_selected = false;
+bool small_selected = false;
+bool mid_selected = false;
+bool big_selected = false;
+
+int pl1_min_deployed = 0;
+int pl1_small_deployed = 0;
+int pl1_mid_deployed = 0;
+int pl1_big_deployed = 0;
+
+int pl2_min_deployed = 0;
+int pl2_small_deployed = 0;
+int pl2_mid_deployed = 0;
+int pl2_big_deployed = 0;
+
 struct FRAMEBMP
 {
     int delay = 0;
@@ -116,6 +137,11 @@ FRAMEBMP IntroFrame;
 
 dll::GRID* grid1{ nullptr };
 dll::GRID* grid2{ nullptr };
+
+std::vector<dll::Ship>vPl1Ships;
+std::vector<dll::Ship>vPl2Ships;
+
+std::vector<dll::TILE> build_ship;
 
 //////////////////////////////////////////////////
 
@@ -241,6 +267,13 @@ void ErrExit(int what)
     exit(1);
 }
 
+
+bool IsNear(dll::TILE myTile, dll::TILE checkTile)
+{
+    if (abs(myTile.col - checkTile.col) > 1 || abs(myTile.row - checkTile.row) > 1)return false;
+
+    return true;
+}
 void GameOver()
 {
     PlaySound(NULL, NULL, NULL);
@@ -264,6 +297,21 @@ void InitGame()
     score1 = 0;
     score2 = 0;
 
+    min_selected = false;
+    small_selected = false;
+    mid_selected = false;
+    big_selected = false;
+
+    pl1_min_deployed = 0;
+    pl1_small_deployed = 0;
+    pl1_mid_deployed = 0;
+    pl1_big_deployed = 0;
+
+    pl2_min_deployed = 0;
+    pl2_small_deployed = 0;
+    pl2_mid_deployed = 0;
+    pl2_big_deployed = 0;
+
     FieldFrame.delay = 12;
     FieldFrame.max_delay = 12;
     FieldFrame.max_frames = 4;
@@ -284,8 +332,15 @@ void InitGame()
     if (grid2)grid2->Release();
     grid2 = new dll::GRID();
 
+    if (!vPl1Ships.empty())
+        for (int i = 0; i < vPl1Ships.size(); ++i)vPl1Ships[i]->Release();
+    vPl1Ships.clear();
 
+    if (!vPl2Ships.empty())
+        for (int i = 0; i < vPl2Ships.size(); ++i)vPl2Ships[i]->Release();
+    vPl2Ships.clear();
 
+    build_ship.clear();
 }
 
 D2D1_RECT_F RectBound(dll::TILE what)
@@ -494,6 +549,176 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
         }
     }
     break;
+
+    case WM_KEYDOWN:
+        if (min_selected || small_selected || mid_selected || big_selected)
+        {
+            if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+            MessageBox(hwnd, L"Довърши кораба,който си избрал !", L"Вече има избран кораб !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+            break;
+        }
+        switch (wParam)
+        {
+        case key1:
+            if (first_player_turn)
+            {
+                if (pl1_min_deployed >= 1)
+                {
+                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                    MessageBox(hwnd, L"Лодката вече е поставена !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    break;
+                }
+                min_selected = true;
+                break;
+            }
+            else
+            {
+                if (pl2_min_deployed >= 1)
+                {
+                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                    MessageBox(hwnd, L"Лодката вече е поставена !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    break;
+                }
+                min_selected = true;
+                break;
+            }
+            break;
+
+        case key2:
+            if (first_player_turn)
+            {
+                if (pl1_small_deployed >= 2)
+                {
+                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                    MessageBox(hwnd, L"Малкият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    break;
+                }
+                small_selected = true;
+                break;
+            }
+            else
+            {
+                if (pl2_small_deployed >= 2)
+                {
+                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                    MessageBox(hwnd, L"Малкият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    break;
+                }
+                small_selected = true;
+                break;
+            }
+            break;
+
+        case key3:
+            if (first_player_turn)
+            {
+                if (pl1_mid_deployed >= 3)
+                {
+                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                    MessageBox(hwnd, L"Средният кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    break;
+                }
+                mid_selected = true;
+                break;
+            }
+            else
+            {
+                if (pl2_mid_deployed >= 3)
+                {
+                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                    MessageBox(hwnd, L"Средният кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    break;
+                }
+                mid_selected = true;
+                break;
+            }
+            break;
+
+        case key4:
+            if (first_player_turn)
+            {
+                if (pl1_big_deployed >= 4)
+                {
+                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                    MessageBox(hwnd, L"Големият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    break;
+                }
+                big_selected = true;
+                break;
+            }
+            else
+            {
+                if (pl2_big_deployed >= 4)
+                {
+                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                    MessageBox(hwnd, L"Големият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    break;
+                }
+                big_selected = true;
+                break;
+            }
+            break;
+        }
+        break;
+
+
+    case WM_LBUTTONDOWN:
+        if (HIWORD(lParam) <= 50)
+        {
+
+        }
+        else
+        {
+            if (!player1_set || !player2_set)
+            {
+                if (first_player_turn)
+                {
+                    if (player1_set)
+                    {
+                        if (sound)mciSendString(L"play.\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                        MessageBox(hwnd, L"Вече си поставил своя флот !", L"Смяна на играча !", MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
+                        break;
+                    }
+
+                    dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam))};
+
+                    dll::TILE current_tile{ grid1->GetTileDims(grid1->GetTileNumber(f_cursor)) };
+
+                    if (current_tile.state != dll::content::free)
+                    {
+                        if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                        break;
+                    }
+                    
+                    if (min_selected)
+                    {
+                        vPl1Ships.push_back(dll::ShipFactory(dll::ships::min_ship,&current_tile,1,dll::dirs::hor,*grid1));
+                        pl1_min_deployed = 1;
+                        min_selected = false;
+                        break;
+                    }
+
+
+                }
+                else
+                {
+                    if (player2_set)
+                    {
+                        if (sound)mciSendString(L"play.\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                        MessageBox(hwnd, L"Вече си поставил своя флот !", L"Смяна на играча !", MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
+                        break;
+                    }
+
+
+
+                }
+            }
+            else
+            {
+
+            }
+        }
+        break;
 
 
     default: return DefWindowProc(hwnd, ReceivedMsg, wParam, lParam);
@@ -959,6 +1184,67 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                 }
             }
         }
+
+        if (!vPl1Ships.empty())
+        {
+            for (std::vector<dll::Ship>::iterator ship = vPl1Ships.begin(); ship < vPl1Ships.end(); ++ship)
+            {
+                switch ((*ship)->get_type())
+                {
+                case dll::ships::min_ship:
+                    Draw->DrawBitmap(bmpMinShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
+                        (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                    break;
+
+                case dll::ships::small_ship:
+                    if ((*ship)->dir == dll::dirs::hor)
+                        Draw->DrawBitmap(bmpSmallHShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
+                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                    else
+                        Draw->DrawBitmap(bmpSmallVShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
+                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                    break;
+
+                case dll::ships::mid_ship1:
+                    if ((*ship)->dir == dll::dirs::hor)
+                        Draw->DrawBitmap(bmpMid1HShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
+                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                    else
+                        Draw->DrawBitmap(bmpMid1VShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
+                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                    break;
+
+                case dll::ships::mid_ship2:
+                    if ((*ship)->dir == dll::dirs::hor)
+                        Draw->DrawBitmap(bmpMid2HShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
+                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                    else
+                        Draw->DrawBitmap(bmpMid2VShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
+                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                    break;
+
+                case dll::ships::big_ship1:
+                    if ((*ship)->dir == dll::dirs::hor)
+                        Draw->DrawBitmap(bmpBig1HShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
+                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                    else
+                        Draw->DrawBitmap(bmpBig1VShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
+                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                    break;
+
+                case dll::ships::big_ship2:
+                    if ((*ship)->dir == dll::dirs::hor)
+                        Draw->DrawBitmap(bmpBig2HShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
+                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                    else
+                        Draw->DrawBitmap(bmpBig2VShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
+                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                    break;
+
+                }
+            }
+        }
+
 
 
         /////////////////////////////////////////
