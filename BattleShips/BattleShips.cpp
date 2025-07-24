@@ -587,7 +587,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
         case key2:
             if (first_player_turn)
             {
-                if (pl1_small_deployed >= 2)
+                if (pl1_small_deployed >= 1)
                 {
                     if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
                     MessageBox(hwnd, L"Малкият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
@@ -598,7 +598,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
             }
             else
             {
-                if (pl2_small_deployed >= 2)
+                if (pl2_small_deployed >= 1)
                 {
                     if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
                     MessageBox(hwnd, L"Малкият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
@@ -612,7 +612,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
         case key3:
             if (first_player_turn)
             {
-                if (pl1_mid_deployed >= 3)
+                if (pl1_mid_deployed >= 1)
                 {
                     if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
                     MessageBox(hwnd, L"Средният кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
@@ -623,7 +623,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
             }
             else
             {
-                if (pl2_mid_deployed >= 3)
+                if (pl2_mid_deployed >= 1)
                 {
                     if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
                     MessageBox(hwnd, L"Средният кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
@@ -637,7 +637,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
         case key4:
             if (first_player_turn)
             {
-                if (pl1_big_deployed >= 4)
+                if (pl1_big_deployed >= 1)
                 {
                     if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
                     MessageBox(hwnd, L"Големият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
@@ -648,7 +648,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
             }
             else
             {
-                if (pl2_big_deployed >= 4)
+                if (pl2_big_deployed >= 1)
                 {
                     if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
                     MessageBox(hwnd, L"Големият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
@@ -684,7 +684,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
 
                     dll::TILE current_tile{ grid1->GetTileDims(grid1->GetTileNumber(f_cursor)) };
 
-                    if (current_tile.state != dll::content::free)
+                    if (grid1->grid[current_tile.col][current_tile.row].state != dll::content::free)
                     {
                         if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
                         break;
@@ -697,7 +697,29 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                         min_selected = false;
                         break;
                     }
-
+                    else if (small_selected)
+                    {
+                        static dll::TILE temp_ship[2]{};
+                        if (temp_ship[0].state == dll::content::free)
+                        {
+                            temp_ship[0] = current_tile;
+                            temp_ship[0].state = dll::content::used;
+                            grid1->grid[current_tile.col][current_tile.row].state = dll::content::used;
+                            break;
+                        }
+                        else
+                        {
+                            temp_ship[1] = current_tile;
+                            grid1->grid[current_tile.col][current_tile.row].state = dll::content::used;
+                            if (temp_ship[0].row == temp_ship[1].row)
+                                vPl1Ships.push_back(dll::ShipFactory(dll::ships::small_ship, temp_ship, 2, dll::dirs::hor, *grid1));
+                            else 
+                                vPl1Ships.push_back(dll::ShipFactory(dll::ships::small_ship, temp_ship, 2, dll::dirs::vert, *grid1));
+                            small_selected = false;
+                            ++pl1_small_deployed;
+                            break;
+                        }
+                    }
 
                 }
                 else
@@ -1198,47 +1220,47 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
                 case dll::ships::small_ship:
                     if ((*ship)->dir == dll::dirs::hor)
-                        Draw->DrawBitmap(bmpSmallHShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
-                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                        Draw->DrawBitmap(bmpSmallHShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                            (*ship)->ship_tile[1].end.x, (*ship)->ship_tile[1].end.y));
                     else
-                        Draw->DrawBitmap(bmpSmallVShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
-                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                        Draw->DrawBitmap(bmpSmallVShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                            (*ship)->ship_tile[1].end.x, (*ship)->ship_tile[1].end.y));
                     break;
 
                 case dll::ships::mid_ship1:
                     if ((*ship)->dir == dll::dirs::hor)
-                        Draw->DrawBitmap(bmpMid1HShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
-                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                        Draw->DrawBitmap(bmpMid1HShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                            (*ship)->ship_tile[2].end.x, (*ship)->ship_tile[2].end.y));
                     else
-                        Draw->DrawBitmap(bmpMid1VShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
-                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                        Draw->DrawBitmap(bmpMid1VShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                            (*ship)->ship_tile[2].end.x, (*ship)->ship_tile[2].end.y));
                     break;
 
                 case dll::ships::mid_ship2:
                     if ((*ship)->dir == dll::dirs::hor)
-                        Draw->DrawBitmap(bmpMid2HShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
-                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                        Draw->DrawBitmap(bmpMid2HShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                            (*ship)->ship_tile[2].end.x, (*ship)->ship_tile[2].end.y));
                     else
-                        Draw->DrawBitmap(bmpMid2VShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
-                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                        Draw->DrawBitmap(bmpMid2VShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                            (*ship)->ship_tile[2].end.x, (*ship)->ship_tile[2].end.y));
                     break;
 
                 case dll::ships::big_ship1:
                     if ((*ship)->dir == dll::dirs::hor)
-                        Draw->DrawBitmap(bmpBig1HShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
-                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                        Draw->DrawBitmap(bmpBig1HShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                            (*ship)->ship_tile[3].end.x, (*ship)->ship_tile[3].end.y));
                     else
-                        Draw->DrawBitmap(bmpBig1VShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
-                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                        Draw->DrawBitmap(bmpBig1VShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                            (*ship)->ship_tile[3].end.x, (*ship)->ship_tile[3].end.y));
                     break;
 
                 case dll::ships::big_ship2:
                     if ((*ship)->dir == dll::dirs::hor)
-                        Draw->DrawBitmap(bmpBig2HShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
-                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                        Draw->DrawBitmap(bmpBig2HShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                            (*ship)->ship_tile[3].end.x, (*ship)->ship_tile[3].end.y));
                     else
-                        Draw->DrawBitmap(bmpBig2VShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
-                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                        Draw->DrawBitmap(bmpBig2VShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                            (*ship)->ship_tile[3].end.x, (*ship)->ship_tile[3].end.y));
                     break;
 
                 }
