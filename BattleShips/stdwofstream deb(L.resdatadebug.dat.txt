@@ -1,0 +1,10 @@
+std::wofstream deb(L".\\res\\data\\debug.dat");
+deb << L"Ship[0]->col: " << vPl1Ships.back()->ship_tile[0].col
+    << L" Ship[1]->col: " << vPl1Ships.back()->ship_tile[1].col
+    << L" \nShip[0]->row: " << vPl1Ships.back()->ship_tile[0].row
+    << L" Ship[1]->row: " << vPl1Ships.back()->ship_tile[1].row
+    << L" \nShip[0]->sx: " << vPl1Ships.back()->ship_tile[0].start.x
+    << L" Ship[1]->sx: " << vPl1Ships.back()->ship_tile[1].start.x
+    << L" \nShip[0]->sy: " << vPl1Ships.back()->ship_tile[0].start.y
+    << L" Ship[1]->sy: " << vPl1Ships.back()->ship_tile[1].start.y;
+deb.close();
