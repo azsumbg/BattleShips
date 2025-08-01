@@ -809,6 +809,14 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                     break;
                                 }
                             }
+
+                            if (current_tile.state != dll::content::free)
+                            {
+                                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                    L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                break;
+                            }
                             
                             temp_ship[1] = current_tile;
                             temp_ship[1].state = dll::content::used;
@@ -855,6 +863,14 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                 }
                             }
 
+                            if (current_tile.state != dll::content::free)
+                            {
+                                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                    L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                break;
+                            }
+
                             temp_ship[2] = current_tile;
                             temp_ship[2].state = dll::content::used;
                             grid1->grid[current_tile.col][current_tile.row].state = dll::content::used;
@@ -872,7 +888,183 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                             break;
                         }
                     }
+                    else if (big_selected)
+                    {
+                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam)) };
 
+                        dll::TILE current_tile{ grid1->GetTileDims(grid1->GetTileNumber(f_cursor)) };
+
+                        if (grid1->grid[current_tile.col][current_tile.row].state != dll::content::free)
+                        {
+                            if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                            min_selected = false;
+                            small_selected = false;
+                            mid_selected = false;
+                            big_selected = false;
+                            break;
+                        }
+                        static dll::TILE temp_ship[4]{};
+
+                        if (temp_ship[0].state == dll::content::free)
+                        {
+                            temp_ship[0] = current_tile;
+                            temp_ship[0].state = dll::content::used;
+                            grid1->grid[current_tile.col][current_tile.row].state = dll::content::used;
+                            break;
+                        }
+                        else if (temp_ship[1].state == dll::content::free)
+                        {
+                            if (temp_ship[0].row == current_tile.row)
+                            {
+                                if (temp_ship[0].col == current_tile.col || abs(temp_ship[0].col - current_tile.col) > 1)
+                                {
+                                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                    MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                        L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                    break;
+                                }
+                            }
+                            else if (temp_ship[0].col == current_tile.col)
+                            {
+                                if (temp_ship[0].row == current_tile.row || abs(temp_ship[0].row - current_tile.row) > 1)
+                                {
+                                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                    MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                        L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                    break;
+                                }
+                            }
+
+                            if (current_tile.state != dll::content::free)
+                            {
+                                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                    L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                break;
+                            }
+
+                            temp_ship[1] = current_tile;
+                            temp_ship[1].state = dll::content::used;
+                            grid1->grid[current_tile.col][current_tile.row].state = dll::content::used;
+                            break;
+                        }
+                        else if (temp_ship[2].state == dll::content::free)
+                        {
+                            if (temp_ship[0].row == temp_ship[1].row && temp_ship[0].row != current_tile.row)
+                            {
+                                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                    L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                break;
+
+                            }
+                            else if (temp_ship[0].col == temp_ship[1].col && temp_ship[0].col != current_tile.col)
+                            {
+                                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                    L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                break;
+
+                            }
+
+                            if (temp_ship[1].row == current_tile.row)
+                            {
+                                if (temp_ship[1].col == current_tile.col || abs(temp_ship[1].col - current_tile.col) > 1)
+                                {
+                                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                    MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                        L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                    break;
+                                }
+                            }
+                            else if (temp_ship[1].col == current_tile.col)
+                            {
+                                if (temp_ship[1].row == current_tile.row || abs(temp_ship[1].row - current_tile.row) > 1)
+                                {
+                                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                    MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                        L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                    break;
+                                }
+                            }
+
+                            if (current_tile.state != dll::content::free)
+                            {
+                                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                    L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                break;
+                            }
+
+                            temp_ship[2] = current_tile;
+                            temp_ship[2].state = dll::content::used;
+                            grid1->grid[current_tile.col][current_tile.row].state = dll::content::used;
+                        }
+                        else if (temp_ship[3].state == dll::content::free)
+                        {
+                            if (temp_ship[0].row == temp_ship[1].row && temp_ship[0].row != current_tile.row)
+                            {
+                                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                    L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                break;
+
+                            }
+                            else if (temp_ship[0].col == temp_ship[1].col && temp_ship[0].col != current_tile.col)
+                            {
+                                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                    L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                break;
+
+                            }
+
+                            if (temp_ship[2].row == current_tile.row)
+                            {
+                                if (temp_ship[2].col == current_tile.col || abs(temp_ship[2].col - current_tile.col) > 1)
+                                {
+                                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                    MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                        L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                    break;
+                                }
+                            }
+                            else if (temp_ship[2].col == current_tile.col)
+                            {
+                                if (temp_ship[2].row == current_tile.row || abs(temp_ship[2].row - current_tile.row) > 1)
+                                {
+                                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                    MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                        L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                    break;
+                                }
+                            }
+
+                            if (current_tile.state != dll::content::free)
+                            {
+                                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                    L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                break;
+                            }
+
+                            temp_ship[3] = current_tile;
+                            temp_ship[3].state = dll::content::used;
+                            grid1->grid[current_tile.col][current_tile.row].state = dll::content::used;
+
+                            int rand_type = Randerer(3, 4);
+
+                            if (temp_ship[0].row == temp_ship[1].row)
+                                vPl1Ships.push_back(dll::ShipFactory(static_cast<dll::ships>(rand_type),
+                                    temp_ship, 4, dll::dirs::hor, *grid1));
+                            else
+                                vPl1Ships.push_back(dll::ShipFactory(static_cast<dll::ships>(rand_type),
+                                    temp_ship, 4, dll::dirs::vert, *grid1));
+                            big_selected = false;
+                            ++pl1_big_deployed;
+                            break;
+                        }
+                    }
                 }
                 else
                 {
