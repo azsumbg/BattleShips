@@ -1222,7 +1222,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                         {
                             temp_ship[0] = current_tile;
                             temp_ship[0].state = dll::content::used;
-                            grid1->grid[current_tile.col][current_tile.row].state = dll::content::used;
+                            grid2->grid[current_tile.col][current_tile.row].state = dll::content::used;
                             break;
                         }
                         else
@@ -1378,7 +1378,6 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                 break;
                             }
 
-
                             if (current_tile.state != dll::content::free)
                             {
                                 if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
@@ -1394,10 +1393,10 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                             int rand_type = Randerer(1, 2);
 
                             if (temp_ship[0].row == temp_ship[1].row)
-                                vPl1Ships.push_back(dll::ShipFactory(static_cast<dll::ships>(rand_type),
+                                vPl2Ships.push_back(dll::ShipFactory(static_cast<dll::ships>(rand_type),
                                     temp_ship, 3, dll::dirs::hor, *grid1));
                             else
-                                vPl1Ships.push_back(dll::ShipFactory(static_cast<dll::ships>(rand_type),
+                                vPl2Ships.push_back(dll::ShipFactory(static_cast<dll::ships>(rand_type),
                                     temp_ship, 3, dll::dirs::vert, *grid1));
                             mid_selected = false;
                             pl2_mid_deployed = true;
@@ -2150,6 +2149,67 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                     else Draw->DrawRectangle(RectBound(grid2->grid[cols][rows]), RedBoundBrush);
                 }
             }
+        
+            if (!vPl2Ships.empty())
+            {
+                for (std::vector<dll::Ship>::iterator ship = vPl2Ships.begin(); ship < vPl2Ships.end(); ++ship)
+                {
+                    switch ((*ship)->get_type())
+                    {
+                    case dll::ships::min_ship:
+                        Draw->DrawBitmap(bmpMinShip, D2D1::RectF((*ship)->ship_tile->start.x, (*ship)->ship_tile->start.y,
+                            (*ship)->ship_tile->end.x, (*ship)->ship_tile->end.y));
+                        break;
+
+                    case dll::ships::small_ship:
+                        if ((*ship)->dir == dll::dirs::hor)
+                            Draw->DrawBitmap(bmpSmallHShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                                (*ship)->ship_tile[1].end.x, (*ship)->ship_tile[1].end.y));
+                        else
+                            Draw->DrawBitmap(bmpSmallVShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                                (*ship)->ship_tile[1].end.x, (*ship)->ship_tile[1].end.y));
+                        break;
+
+                    case dll::ships::mid_ship1:
+                        if ((*ship)->dir == dll::dirs::hor)
+                            Draw->DrawBitmap(bmpMid1HShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                                (*ship)->ship_tile[2].end.x, (*ship)->ship_tile[2].end.y));
+                        else
+                            Draw->DrawBitmap(bmpMid1VShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                                (*ship)->ship_tile[2].end.x, (*ship)->ship_tile[2].end.y));
+                        break;
+
+                    case dll::ships::mid_ship2:
+                        if ((*ship)->dir == dll::dirs::hor)
+                            Draw->DrawBitmap(bmpMid2HShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                                (*ship)->ship_tile[2].end.x, (*ship)->ship_tile[2].end.y));
+                        else
+                            Draw->DrawBitmap(bmpMid2VShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                                (*ship)->ship_tile[2].end.x, (*ship)->ship_tile[2].end.y));
+                        break;
+
+                    case dll::ships::big_ship1:
+                        if ((*ship)->dir == dll::dirs::hor)
+                            Draw->DrawBitmap(bmpBig1HShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                                (*ship)->ship_tile[3].end.x, (*ship)->ship_tile[3].end.y));
+                        else
+                            Draw->DrawBitmap(bmpBig1VShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                                (*ship)->ship_tile[3].end.x, (*ship)->ship_tile[3].end.y));
+                        break;
+
+                    case dll::ships::big_ship2:
+                        if ((*ship)->dir == dll::dirs::hor)
+                            Draw->DrawBitmap(bmpBig2HShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                                (*ship)->ship_tile[3].end.x, (*ship)->ship_tile[3].end.y));
+                        else
+                            Draw->DrawBitmap(bmpBig2VShip, D2D1::RectF((*ship)->ship_tile[0].start.x, (*ship)->ship_tile[0].start.y,
+                                (*ship)->ship_tile[3].end.x, (*ship)->ship_tile[3].end.y));
+                        break;
+
+                    }
+                }
+            }
+        
         }
         else
         {
