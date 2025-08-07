@@ -334,7 +334,7 @@ void InitGame()
 
     if (grid1)grid1->Release();
     grid1 = new dll::GRID();
-
+    
     if (grid2)grid2->Release();
     grid2 = new dll::GRID();
 
@@ -345,8 +345,6 @@ void InitGame()
     if (!vPl2Ships.empty())
         for (int i = 0; i < vPl2Ships.size(); ++i)vPl2Ships[i]->Release();
     vPl2Ships.clear();
-
-    
 }
 
 D2D1_RECT_F RectBound(dll::TILE what)
@@ -664,9 +662,30 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                 break;
             }
             break;
+
+        case VK_F1:
+            if (!first_player_turn)
+            {
+                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                show_grid1 = false;
+                break;
+            }
+            if (!show_grid1)show_grid1 = true;
+            else show_grid1 = false;
+            break;
+
+        case VK_F2:
+            if (first_player_turn)
+            {
+                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                show_grid2 = false;
+                break;
+            }
+            if (!show_grid2)show_grid2 = true;
+            else show_grid2 = false;
+            break;
         }
         break;
-
 
     case WM_LBUTTONDOWN:
         if (HIWORD(lParam) <= 50)
@@ -747,10 +766,11 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
 
                     if (min_selected)
                     {
-                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam)) };
-
+                        
+                        dll::FPOINT f_cursor{ static_cast<float>(LOWORD(lParam)), static_cast<float>(HIWORD(lParam)) };
+                        
                         dll::TILE current_tile{ grid1->GetTileDims(grid1->GetTileNumber(f_cursor)) };
-
+                        
                         if (grid1->grid[current_tile.col][current_tile.row].state != dll::content::free)
                         {
                             if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
@@ -758,7 +778,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                 L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
                             break;
                         }
-                       
+                        
                         vPl1Ships.push_back(dll::ShipFactory(dll::ships::min_ship,&current_tile,1,dll::dirs::hor,*grid1));
                         pl1_min_deployed = true;
                         min_selected = false;
@@ -1020,6 +1040,14 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                 }
                             }
 
+                            if (temp_ship[0].row != current_tile.row && temp_ship[0].col != current_tile.col)
+                            {
+                                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                    L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                break;
+                            }
+
                             if (current_tile.state != dll::content::free)
                             {
                                 if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
@@ -1072,7 +1100,8 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                     break;
                                 }
                             }
-                            else if (temp_ship[1].row != current_tile.row && temp_ship[1].col != current_tile.col)
+                            
+                            if (temp_ship[1].row != current_tile.row && temp_ship[1].col != current_tile.col)
                             {
                                 if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
                                 MessageBox(hwnd, L"Неправилно избрана позиция !",
@@ -1131,7 +1160,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                     break;
                                 }
                             }
-                            else if (temp_ship[2].row != current_tile.row && temp_ship[2].col != current_tile.col)
+                            if (temp_ship[2].row != current_tile.row && temp_ship[2].col != current_tile.col)
                             {
                                 if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
                                 MessageBox(hwnd, L"Неправилно избрана позиция !",
@@ -1326,6 +1355,14 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                 break;
                             }
 
+                            if (temp_ship[0].row != current_tile.row && temp_ship[0].col != current_tile.col)
+                            {
+                                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                    L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                break;
+                            }
+
                             temp_ship[1] = current_tile;
                             temp_ship[1].state = dll::content::used;
                             grid2->grid[current_tile.col][current_tile.row].state = dll::content::used;
@@ -1453,6 +1490,14 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                 }
                             }
 
+                            if (temp_ship[0].row != current_tile.row && temp_ship[0].col != current_tile.col)
+                            {
+                                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                                MessageBox(hwnd, L"Неправилно избрана позиция !",
+                                    L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                                break;
+                            }
+                            
                             if (current_tile.state != dll::content::free)
                             {
                                 if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
@@ -1460,6 +1505,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                     L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
                                 break;
                             }
+
 
                             temp_ship[1] = current_tile;
                             temp_ship[1].state = dll::content::used;
@@ -1505,7 +1551,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                     break;
                                 }
                             }
-                            else if (temp_ship[1].row != current_tile.row && temp_ship[1].col != current_tile.col)
+                            if (temp_ship[1].row != current_tile.row && temp_ship[1].col != current_tile.col)
                             {
                                 if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
                                 MessageBox(hwnd, L"Неправилно избрана позиция !",
@@ -1564,7 +1610,8 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                     break;
                                 }
                             }
-                            else if (temp_ship[2].row != current_tile.row && temp_ship[2].col != current_tile.col)
+                            
+                            if (temp_ship[2].row != current_tile.row && temp_ship[2].col != current_tile.col)
                             {
                                 if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
                                 MessageBox(hwnd, L"Неправилно избрана позиция !",
@@ -1611,7 +1658,8 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
         }
         break;
 
-
+        
+    
     default: return DefWindowProc(hwnd, ReceivedMsg, wParam, lParam);
     }
     return (LRESULT)(FALSE);
@@ -2008,8 +2056,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 
 
-
-
+       
 
     // DRAW THINGS ******************************
 
@@ -2065,7 +2112,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         if (big_selected)Draw->DrawBitmap(bmpBig1VShip, D2D1::RectF(920.0f, scr_height / 2 - 100.0f, scr_width - 100.0f,
             scr_height / 2 + 75.0f));
 
-
+        
         if (first_player_turn && (!player1_set || show_grid1))
         {
             for (int cols = 0; cols < MAX_COLS; ++cols)
