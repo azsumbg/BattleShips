@@ -8,7 +8,7 @@
 
 #include <random>
 
-constexpr float scr_width{ 1000.0f };
+constexpr float scr_width{ 1100.0f };
 constexpr float scr_height{ 800.0f };
 
 constexpr int MAX_COLS{ 18 };
