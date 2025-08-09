@@ -58,6 +58,8 @@ MSG bMsg{};
 BOOL bRet = 0;
 POINT cur_pos{ 0,0 };
 
+float render_target_y_scale{ 1.0f };
+
 D2D1_RECT_F b1Rect{ 50.0f, 5.0f, scr_width / 3 - 50.0f, 45.0f };
 D2D1_RECT_F b2Rect{ scr_width / 3 + 50.0f, 5.0f, scr_width * 2 / 3 - 50.0f, 45.0f };
 D2D1_RECT_F b3Rect{ scr_width * 2 / 3 + 50.0f, 5.0f, scr_width - 50.0f, 45.0f };
@@ -213,7 +215,8 @@ template<HasRelease T>bool ClrHeap(T** what)
         return true;
     }
     return false;
-}
+};
+
 void LogError(LPCWSTR what)
 {
     std::wofstream err(L".\\res\\data\\error.log", std::ios::app);
@@ -345,6 +348,7 @@ void InitGame()
     if (!vPl2Ships.empty())
         for (int i = 0; i < vPl2Ships.size(); ++i)vPl2Ships[i]->Release();
     vPl2Ships.clear();
+
 }
 
 D2D1_RECT_F RectBound(dll::TILE what)
@@ -431,6 +435,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
             SetMenu(hwnd, bBar);
             InitGame();
         }
+
         break;
 
     case WM_CLOSE:
@@ -530,8 +535,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
         }
         break;
 
-    case WM_COMMAND:
-    {
+    case WM_COMMAND: 
         switch (LOWORD(wParam))
         {
         case mNew:
@@ -551,8 +555,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
             break;
 
         }
-    }
-    break;
+        break;
 
     case WM_KEYDOWN:
         if (min_selected || small_selected || mid_selected || big_selected)
@@ -561,131 +564,135 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
             MessageBox(hwnd, L"Довърши кораба,който си избрал !", L"Вече има избран кораб !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
             break;
         }
-        switch (wParam)
+        else
         {
-        case key1:
-            if (first_player_turn)
+            switch (wParam)
             {
-                if (pl1_min_deployed)
+            case key1:
+                if (first_player_turn)
                 {
-                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
-                    MessageBox(hwnd, L"Лодката вече е поставена !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    if (pl1_min_deployed)
+                    {
+                        if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                        MessageBox(hwnd, L"Лодката вече е поставена !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                        break;
+                    }
+                    min_selected = true;
                     break;
                 }
-                min_selected = true;
-                break;
-            }
-            else
-            {
-                if (pl2_min_deployed)
+                else
                 {
-                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
-                    MessageBox(hwnd, L"Лодката вече е поставена !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    if (pl2_min_deployed)
+                    {
+                        if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                        MessageBox(hwnd, L"Лодката вече е поставена !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                        break;
+                    }
+                    min_selected = true;
                     break;
                 }
-                min_selected = true;
                 break;
-            }
-            break;
 
-        case key2:
-            if (first_player_turn)
-            {
-                if (pl1_small_deployed)
+            case key2:
+                if (first_player_turn)
                 {
-                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
-                    MessageBox(hwnd, L"Малкият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    if (pl1_small_deployed)
+                    {
+                        if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                        MessageBox(hwnd, L"Малкият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                        break;
+                    }
+                    small_selected = true;
                     break;
                 }
-                small_selected = true;
-                break;
-            }
-            else
-            {
-                if (pl2_small_deployed)
+                else
                 {
-                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
-                    MessageBox(hwnd, L"Малкият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    if (pl2_small_deployed)
+                    {
+                        if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                        MessageBox(hwnd, L"Малкият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                        break;
+                    }
+                    small_selected = true;
                     break;
                 }
-                small_selected = true;
                 break;
-            }
-            break;
 
-        case key3:
-            if (first_player_turn)
-            {
-                if (pl1_mid_deployed)
+            case key3:
+                if (first_player_turn)
                 {
-                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
-                    MessageBox(hwnd, L"Средният кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    if (pl1_mid_deployed)
+                    {
+                        if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                        MessageBox(hwnd, L"Средният кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                        break;
+                    }
+                    mid_selected = true;
                     break;
                 }
-                mid_selected = true;
-                break;
-            }
-            else
-            {
-                if (pl2_mid_deployed)
+                else
                 {
-                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
-                    MessageBox(hwnd, L"Средният кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    if (pl2_mid_deployed)
+                    {
+                        if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                        MessageBox(hwnd, L"Средният кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                        break;
+                    }
+                    mid_selected = true;
                     break;
                 }
-                mid_selected = true;
                 break;
-            }
-            break;
 
-        case key4:
-            if (first_player_turn)
-            {
-                if (pl1_big_deployed)
+            case key4:
+                if (first_player_turn)
                 {
-                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
-                    MessageBox(hwnd, L"Големият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    if (pl1_big_deployed)
+                    {
+                        if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                        MessageBox(hwnd, L"Големият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                        break;
+                    }
+                    big_selected = true;
                     break;
                 }
-                big_selected = true;
-                break;
-            }
-            else
-            {
-                if (pl2_big_deployed)
+                else
                 {
-                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
-                    MessageBox(hwnd, L"Големият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                    if (pl2_big_deployed)
+                    {
+                        if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                        MessageBox(hwnd, L"Големият кораб вече е поставен !", L"Избери друго !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                        break;
+                    }
+                    big_selected = true;
                     break;
                 }
-                big_selected = true;
                 break;
-            }
-            break;
 
-        case VK_F1:
-            if (!first_player_turn)
-            {
-                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
-                show_grid1 = false;
+            case VK_F1:
+                if (!first_player_turn)
+                {
+                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                    show_grid1 = false;
+                    break;
+                }
+                if (!show_grid1)show_grid1 = true;
+                else show_grid1 = false;
                 break;
-            }
-            if (!show_grid1)show_grid1 = true;
-            else show_grid1 = false;
-            break;
 
-        case VK_F2:
-            if (first_player_turn)
-            {
-                if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
-                show_grid2 = false;
+            case VK_F2:
+                if (first_player_turn)
+                {
+                    if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                    show_grid2 = false;
+                    break;
+                }
+                if (!show_grid2)show_grid2 = true;
+                else show_grid2 = false;
                 break;
             }
-            if (!show_grid2)show_grid2 = true;
-            else show_grid2 = false;
-            break;
         }
         break;
+      
 
     case WM_LBUTTONDOWN:
         if (HIWORD(lParam) <= 50)
@@ -753,6 +760,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
         }
         else
         {
+        
             if (!player1_set || !player2_set)
             {
                 if (first_player_turn)
@@ -767,8 +775,8 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                     if (min_selected)
                     {
                         
-                        dll::FPOINT f_cursor{ static_cast<float>(LOWORD(lParam)), static_cast<float>(HIWORD(lParam)) };
-                        
+                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam) * render_target_y_scale) };
+
                         dll::TILE current_tile{ grid1->GetTileDims(grid1->GetTileNumber(f_cursor)) };
                         
                         if (grid1->grid[current_tile.col][current_tile.row].state != dll::content::free)
@@ -792,7 +800,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                     }
                     else if (small_selected)
                     {
-                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam)) };
+                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam) * render_target_y_scale) };
 
                         dll::TILE current_tile{ grid1->GetTileDims(grid1->GetTileNumber(f_cursor)) };
 
@@ -862,7 +870,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                     }
                     else if (mid_selected)
                     {
-                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam)) };
+                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam) * render_target_y_scale) };
 
                         dll::TILE current_tile{ grid1->GetTileDims(grid1->GetTileNumber(f_cursor)) };
 
@@ -997,7 +1005,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                     }
                     else if (big_selected)
                     {
-                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam)) };
+                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam) * render_target_y_scale) };
 
                         dll::TILE current_tile{ grid1->GetTileDims(grid1->GetTileNumber(f_cursor)) };
 
@@ -1210,7 +1218,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
 
                     if (min_selected)
                     {
-                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam)) };
+                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam) * render_target_y_scale) };
 
                         dll::TILE current_tile{ grid2->GetTileDims(grid2->GetTileNumber(f_cursor)) };
 
@@ -1234,7 +1242,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                     }
                     else if (small_selected)
                     {
-                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam)) };
+                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam) * render_target_y_scale) };
 
                         dll::TILE current_tile{ grid2->GetTileDims(grid2->GetTileNumber(f_cursor)) };
 
@@ -1304,7 +1312,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                     }
                     else if (mid_selected)
                     {
-                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam)) };
+                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam) * render_target_y_scale) };
 
                         dll::TILE current_tile{ grid1->GetTileDims(grid2->GetTileNumber(f_cursor)) };
 
@@ -1447,7 +1455,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                     }
                     else if (big_selected)
                     {
-                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam)) };
+                        dll::FPOINT f_cursor{ (float)(LOWORD(lParam)), (float)(HIWORD(lParam) * render_target_y_scale) };
 
                         dll::TILE current_tile{ grid1->GetTileDims(grid1->GetTileNumber(f_cursor)) };
 
@@ -1658,8 +1666,8 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
         }
         break;
 
-        
     
+     
     default: return DefWindowProc(hwnd, ReceivedMsg, wParam, lParam);
     }
     return (LRESULT)(FALSE);
@@ -1688,6 +1696,7 @@ void CreateResources()
     outCur = LoadCursorFromFile(L".\\res\\out.ani");
     if (!mainCur || !outCur)ErrExit(eCursor);
 
+    
     bWinClass.lpszClassName = bWinClassName;
     bWinClass.hInstance = bIns;
     bWinClass.lpfnWndProc = &WinProc;
@@ -1724,6 +1733,13 @@ void CreateResources()
 
             if (Draw)
             {
+                RECT clRect{};
+                GetClientRect(bHwnd, &clRect);
+
+                D2D1_SIZE_F DrawSize{ Draw->GetSize() };
+
+                render_target_y_scale = DrawSize.height / (clRect.bottom - clRect.top);
+
                 hr = Draw->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Moccasin), &statBckgBrush);
                 if (hr != S_OK)
                 {
@@ -2056,7 +2072,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 
 
-       
+
 
     // DRAW THINGS ******************************
 
