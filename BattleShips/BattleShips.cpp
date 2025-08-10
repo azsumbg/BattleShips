@@ -24,6 +24,7 @@ constexpr wchar_t Ltmp_file[]{ L".\\res\\data\\temp.dat" };
 constexpr wchar_t snd_file[]{ L".\\res\\snd\\main.wav" };
 constexpr wchar_t save_file[]{ L".\\res\\data\\save.dat" };
 constexpr wchar_t record_file[]{ L".\\res\\data\\record.dat" };
+constexpr wchar_t help_file[]{ L".\\res\\data\\help.dat" };
 
 constexpr int mNew{ 1001 };
 constexpr int mExit{ 1002 };
@@ -571,9 +572,89 @@ void InitGame()
     vExplosions1.clear();
     vExplosions2.clear();
 }
+void ShowRecord()
+{
+    int result = 0;
+    CheckFile(record_file, &result);
+
+    if (result == FILE_NOT_EXIST)
+    {
+        if (sound)mciSendString(L"play .\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
+        MessageBox(bHwnd, L"Все още няма рекорд на играта !\n\nПостарай се повече !", L"Липсва файл !",
+            MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
+        return;
+    }
+
+    wchar_t rec_txt[75]{ L"КАПИТАН: " };
+    wchar_t add[5]{ L"\0" };
+    int rec_size = 0;
+
+    wchar_t saved_player[16]{ L"\0" };
+
+    std::wifstream rec(record_file);
+    rec >> result;
+    for (int i = 0; i < 16; ++i)
+    {
+        int letter{ 0 };
+        rec >> letter;
+        saved_player[i] = static_cast<wchar_t>(letter);
+    }
+    rec.close();
+
+    wcscat_s(rec_txt, saved_player);
+    wcscat_s(rec_txt, L"\n\nСВЕТОВЕН РЕКОРД: ");
+    wsprintf(add, L"%d", result);
+    wcscat_s(rec_txt, add);
+
+    for (int i = 0; i < 75; ++i)
+    {
+        if (rec_txt[i] != '\0')rec_size++;
+        else break;
+    }
+
+    if (bigText && hgltBrush)
+    {
+        Draw->BeginDraw();
+        Draw->DrawBitmap(bmpIntro[IntroFrame.GetFrame()], D2D1::RectF(0, 0, scr_width, scr_height));
+        Draw->DrawTextW(rec_txt, rec_size, bigText,
+            D2D1::RectF(100.0f, scr_height / 2 - 50.0f, scr_width, scr_height), hgltBrush);
+        Draw->EndDraw();
+        if (sound)mciSendString(L"play .\\res\\snd\\showrec.wav", NULL, NULL, NULL);
+        Sleep(4000);
+    }
+}
 void ShowHelp()
 {
+    int result = 0;
+    CheckFile(help_file, &result);
 
+    if (result == FILE_NOT_EXIST)
+    {
+        if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+        MessageBox(bHwnd, L"Липсва помощна информация за играта !\n\nСвържете се с разработчика !", L"Липсва файл !",
+            MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
+        return;
+    }
+
+    wchar_t help_txt[500];
+    std::wifstream help(help_file);
+    help >> result;
+    for (int i = 0; i < result; ++i)
+    {
+        int letter = 0;
+        help >> letter;
+        help_txt[i] = static_cast<wchar_t>(letter);
+    }
+    help.close();
+
+    if (midText && RedBoundBrush)
+    {
+        Draw->BeginDraw();
+        Draw->DrawBitmap(bmpIntro[IntroFrame.GetFrame()], D2D1::RectF(0, 0, scr_width, scr_height));
+        Draw->DrawTextW(help_txt, result, midText, D2D1::RectF(100.0f, 100.0f, scr_width, scr_height), RedBoundBrush);
+        Draw->EndDraw();
+        if (sound)mciSendString(L"play .\\res\\snd\\showhelp.wav", NULL, NULL, NULL);
+    }
 }
 
 D2D1_RECT_F RectBound(dll::TILE what)
@@ -2738,6 +2819,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
         if (pause)
         {
+            if (show_help)continue;
             Draw->BeginDraw();
             Draw->DrawBitmap(bmpIntro[IntroFrame.GetFrame()], D2D1::RectF(0, 0, scr_width, scr_height));
             if (hgltBrush && bigText)
