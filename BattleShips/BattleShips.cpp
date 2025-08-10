@@ -101,6 +101,8 @@ bool small_selected = false;
 bool mid_selected = false;
 bool big_selected = false;
 
+bool erase_current_ship = false;
+
 bool pl1_min_deployed = false;
 bool pl1_small_deployed = false;
 bool pl1_mid_deployed = false;
@@ -315,6 +317,8 @@ void InitGame()
     small_selected = false;
     mid_selected = false;
     big_selected = false;
+
+    erase_current_ship = false;
 
     first_player_shoot = false;
     second_player_shoot = false;
@@ -570,7 +574,14 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
         break;
 
     case WM_KEYDOWN:
-        if (min_selected || small_selected || mid_selected || big_selected)
+        if ((first_player_turn && player1_set)|| (!first_player_turn && player2_set))
+        {
+            if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+            MessageBox(hwnd, L"Флотът вече е поставен !", L"Играта почна !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+            break;
+        }  
+        if (wParam != VK_ESCAPE
+            && (min_selected || small_selected || mid_selected || big_selected))
         {
             if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
             MessageBox(hwnd, L"Довърши кораба,който си избрал !", L"Вече има избран кораб !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
@@ -701,10 +712,13 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                 if (!show_grid2)show_grid2 = true;
                 else show_grid2 = false;
                 break;
+
+            case VK_ESCAPE:
+                erase_current_ship = true;
+                break;
             }
         }
         break;
-      
 
     case WM_LBUTTONDOWN:
         if (HIWORD(lParam) <= 50)
@@ -828,6 +842,17 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                         }
                         static dll::TILE temp_ship[2]{};
 
+                        if (erase_current_ship)
+                        {
+                            erase_current_ship = false;
+                            for (int i = 0; i < 2; ++i)
+                            {
+                                if (temp_ship[i].state != dll::content::free)
+                                    grid1->grid[temp_ship[i].col][temp_ship[i].row].state = dll::content::free;
+                                temp_ship[i].state = dll::content::free;
+                            }
+                        }
+
                         if (temp_ship[0].state == dll::content::free)
                         {
                             temp_ship[0] = current_tile;
@@ -899,6 +924,17 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                         }
                         static dll::TILE temp_ship[3]{};
                         
+                        if (erase_current_ship)
+                        {
+                            erase_current_ship = false;
+                            for (int i = 0; i < 3; ++i)
+                            {
+                                if (temp_ship[i].state != dll::content::free)
+                                    grid1->grid[temp_ship[i].col][temp_ship[i].row].state = dll::content::free;
+                                temp_ship[i].state = dll::content::free;
+                            }
+                        }
+
                         if (temp_ship[0].state == dll::content::free)
                         {
                             temp_ship[0] = current_tile;
@@ -1034,6 +1070,17 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                             break;
                         }
                         static dll::TILE temp_ship[4]{};
+
+                        if (erase_current_ship)
+                        {
+                            erase_current_ship = false;
+                            for (int i = 0; i < 4; ++i)
+                            {
+                                if (temp_ship[i].state != dll::content::free)
+                                    grid1->grid[temp_ship[i].col][temp_ship[i].row].state = dll::content::free;
+                                temp_ship[i].state = dll::content::free;
+                            }
+                        }
 
                         if (temp_ship[0].state == dll::content::free)
                         {
@@ -1274,6 +1321,17 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                         }
                         static dll::TILE temp_ship[2]{};
 
+                        if (erase_current_ship)
+                        {
+                            erase_current_ship = false;
+                            for (int i = 0; i < 2; ++i)
+                            {
+                                if (temp_ship[i].state != dll::content::free)
+                                    grid1->grid[temp_ship[i].col][temp_ship[i].row].state = dll::content::free;
+                                temp_ship[i].state = dll::content::free;
+                            }
+                        }
+
                         if (temp_ship[0].state == dll::content::free)
                         {
                             temp_ship[0] = current_tile;
@@ -1344,6 +1402,17 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                             break;
                         }
                         static dll::TILE temp_ship[3]{};
+
+                        if (erase_current_ship)
+                        {
+                            erase_current_ship = false;
+                            for (int i = 0; i < 3; ++i)
+                            {
+                                if (temp_ship[i].state != dll::content::free)
+                                    grid1->grid[temp_ship[i].col][temp_ship[i].row].state = dll::content::free;
+                                temp_ship[i].state = dll::content::free;
+                            }
+                        }
 
                         if (temp_ship[0].state == dll::content::free)
                         {
@@ -1488,6 +1557,17 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                             break;
                         }
                         static dll::TILE temp_ship[4]{};
+
+                        if (erase_current_ship)
+                        {
+                            erase_current_ship = false;
+                            for (int i = 0; i < 4; ++i)
+                            {
+                                if (temp_ship[i].state != dll::content::free)
+                                    grid1->grid[temp_ship[i].col][temp_ship[i].row].state = dll::content::free;
+                                temp_ship[i].state = dll::content::free;
+                            }
+                        }
 
                         if (temp_ship[0].state == dll::content::free)
                         {
@@ -2345,29 +2425,38 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
                 Draw->DrawTextW(play_txt, pl_size, nrmText, D2D1::RectF(905.0f, 60.0f, scr_width, 200.0f), txtBrush);
         }
         
-        if (min_selected)
+        if (erase_current_ship)
         {
-            D2D1_SIZE_F ship_size = bmpMinShip->GetSize();
-            Draw->DrawBitmap(bmpMinShip, D2D1::RectF(950.0f, scr_height / 2 - 25.0f, 950.0f + ship_size.width,
+            D2D1_SIZE_F ship_size = bmpMissed->GetSize();
+            Draw->DrawBitmap(bmpMissed, D2D1::RectF(950.0f, scr_height / 2 - 25.0f, 950.0f + ship_size.width,
                 scr_height / 2 - 25.0f + ship_size.height));
         }
-        if (small_selected)
+        else
         {
-            D2D1_SIZE_F ship_size = bmpSmallVShip->GetSize();
-            Draw->DrawBitmap(bmpSmallVShip, D2D1::RectF(950.0f, scr_height / 2 - 25.0f, 950.0f + ship_size.width,
-                scr_height / 2 - 25.0f + ship_size.height));
-        }
-        if (mid_selected)
-        {
-            D2D1_SIZE_F ship_size = bmpMid1VShip->GetSize();
-            Draw->DrawBitmap(bmpMid1VShip, D2D1::RectF(950.0f, scr_height / 2 - 25.0f, 950.0f + ship_size.width,
-                scr_height / 2 - 25.0f + ship_size.height));
-        }
-        if (big_selected)
-        {
-            D2D1_SIZE_F ship_size = bmpBig1VShip->GetSize();
-            Draw->DrawBitmap(bmpMinShip, D2D1::RectF(950.0f, scr_height / 2 - 25.0f, 950.0f + ship_size.width,
-                scr_height / 2 - 25.0f + ship_size.height));
+            if (min_selected)
+            {
+                D2D1_SIZE_F ship_size = bmpMinShip->GetSize();
+                Draw->DrawBitmap(bmpMinShip, D2D1::RectF(950.0f, scr_height / 2 - 25.0f, 950.0f + ship_size.width,
+                    scr_height / 2 - 25.0f + ship_size.height));
+            }
+            if (small_selected)
+            {
+                D2D1_SIZE_F ship_size = bmpSmallVShip->GetSize();
+                Draw->DrawBitmap(bmpSmallVShip, D2D1::RectF(950.0f, scr_height / 2 - 25.0f, 950.0f + ship_size.width,
+                    scr_height / 2 - 25.0f + ship_size.height));
+            }
+            if (mid_selected)
+            {
+                D2D1_SIZE_F ship_size = bmpMid1VShip->GetSize();
+                Draw->DrawBitmap(bmpMid1VShip, D2D1::RectF(950.0f, scr_height / 2 - 25.0f, 950.0f + ship_size.width,
+                    scr_height / 2 - 25.0f + ship_size.height));
+            }
+            if (big_selected)
+            {
+                D2D1_SIZE_F ship_size = bmpBig1VShip->GetSize();
+                Draw->DrawBitmap(bmpMinShip, D2D1::RectF(950.0f, scr_height / 2 - 25.0f, 950.0f + ship_size.width,
+                    scr_height / 2 - 25.0f + ship_size.height));
+            }
         }
 
         if (first_player_turn)
