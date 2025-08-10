@@ -85,6 +85,8 @@ bool name2_set = false;
 bool player1_set = false;
 bool player2_set = false;
 
+bool show_help = false;
+
 bool show_grid1 = false;
 bool show_grid2 = false;
 
@@ -285,7 +287,71 @@ void ErrExit(int what)
     ReleaseResources();
     exit(1);
 }
+BOOL CheckRecord()
+{
+    if (score1 < 1 && score2 < 1)return no_record;
 
+    if (first_player_win)
+    {
+        int result = 0;
+        CheckFile(record_file, &result);
+
+        if (result == FILE_NOT_EXIST)
+        {
+            std::wofstream rec(record_file);
+            rec << score1 << std::endl;
+            for (int i = 0; i < 16; ++i)rec << static_cast<int>(player1[i]) << std::endl;
+            rec.close();
+            return first_record;
+        }
+        else
+        {
+            std::wifstream check(record_file);
+            check >> result;
+            check.close();
+
+            if (result < score1)
+            {
+                std::wofstream rec(record_file);
+                rec << score1 << std::endl;
+                for (int i = 0; i < 16; ++i)rec << static_cast<int>(player1[i]) << std::endl;
+                rec.close();
+                return record;
+            }
+        }
+    }
+    else if (second_player_win)
+    {
+        int result = 0;
+        CheckFile(record_file, &result);
+
+        if (result == FILE_NOT_EXIST)
+        {
+            std::wofstream rec(record_file);
+            rec << score2 << std::endl;
+            for (int i = 0; i < 16; ++i)rec << static_cast<int>(player2[i]) << std::endl;
+            rec.close();
+            return first_record;
+        }
+        else
+        {
+            std::wifstream check(record_file);
+            check >> result;
+            check.close();
+
+            if (result < score2)
+            {
+                std::wofstream rec(record_file);
+                rec << score2 << std::endl;
+                for (int i = 0; i < 16; ++i)rec << static_cast<int>(player2[i]) << std::endl;
+                rec.close();
+                return record;
+            }
+        }
+    }
+
+    return no_record;
+}
 bool IsNear(dll::TILE myTile, dll::TILE checkTile)
 {
     if (abs(myTile.col - checkTile.col) > 1 || abs(myTile.row - checkTile.row) > 1)return false;
@@ -295,6 +361,134 @@ bool IsNear(dll::TILE myTile, dll::TILE checkTile)
 void GameOver()
 {
     PlaySound(NULL, NULL, NULL);
+
+    if (bigText && hgltBrush && (first_player_win || second_player_win))
+    {
+        wchar_t win_txt[30]{ L"ПОБЕДА ЗА " };
+        int win_size = 0;
+
+        Draw->BeginDraw();
+        Draw->DrawBitmap(bmpIntro[IntroFrame.GetFrame()], D2D1::RectF(0, 0, scr_width, scr_height));
+        if (first_player_win)
+        {
+            wcscat_s(win_txt, player1);
+            for (int i = 0; i < 30; ++i)
+            {
+                if (win_txt[i] != '\0')++win_size;
+                else break;
+            }
+
+            Draw->DrawTextW(win_txt, win_size, bigText,
+                D2D1::RectF(300.0f, scr_height / 2 - 50.0f, scr_width, scr_height), hgltBrush);
+            Draw->EndDraw();
+            PlaySound(L".\\res\\snd\\win_player1.wav", NULL, SND_SYNC);
+            Sleep(2000);
+        }
+        else
+        {
+            wcscat_s(win_txt, player2);
+            for (int i = 0; i < 30; ++i)
+            {
+                if (win_txt[i] != '\0')++win_size;
+                else break;
+            }
+
+            Draw->DrawTextW(win_txt, win_size, bigText,
+                D2D1::RectF(300.0f, scr_height / 2 - 50.0f, scr_width, scr_height), hgltBrush);
+            Draw->EndDraw();
+            PlaySound(L".\\res\\snd\\win_player2.wav", NULL, SND_SYNC);
+            Sleep(2000);
+        }
+
+        if (turn_count <= 30)
+        {
+            if (turn_count <= 15)
+            {
+                if (first_player_win)score1 += 200;
+                else score2 += 200;
+
+                Draw->BeginDraw();
+                Draw->DrawBitmap(bmpIntro[IntroFrame.GetFrame()], D2D1::RectF(0, 0, scr_width, scr_height));
+                Draw->DrawTextW(L"МАКСИМАЛЕН БОНУС !", 19, bigText,
+                    D2D1::RectF(300.0f, scr_height / 2 - 50.0f, scr_width, scr_height), hgltBrush);
+                Draw->EndDraw();
+                PlaySound(L".\\res\\snd\\bonus.wav", NULL, SND_SYNC);
+                Sleep(2000);
+            }
+            else if (turn_count <= 20)
+            {
+                if (first_player_win)score1 += 150;
+                else score2 += 150;
+                Draw->BeginDraw();
+                Draw->DrawBitmap(bmpIntro[IntroFrame.GetFrame()], D2D1::RectF(0, 0, scr_width, scr_height));
+                Draw->DrawTextW(L"ПОЛУЧИ БОНУС !", 15, bigText,
+                    D2D1::RectF(300.0f, scr_height / 2 - 50.0f, scr_width, scr_height), hgltBrush);
+                Draw->EndDraw();
+                PlaySound(L".\\res\\snd\\bonus.wav", NULL, SND_SYNC);
+                Sleep(2000);
+            }
+            else if (turn_count <= 25)
+            {
+                if (first_player_win)score1 += 100;
+                else score2 += 100;
+                Draw->BeginDraw();
+                Draw->DrawBitmap(bmpIntro[IntroFrame.GetFrame()], D2D1::RectF(0, 0, scr_width, scr_height));
+                Draw->DrawTextW(L"ПОЛУЧИ БОНУС !", 15, bigText,
+                    D2D1::RectF(300.0f, scr_height / 2 - 50.0f, scr_width, scr_height), hgltBrush);
+                Draw->EndDraw();
+                PlaySound(L".\\res\\snd\\bonus.wav", NULL, SND_SYNC);
+                Sleep(2000);
+            }
+            else if (turn_count <= 30)
+            {
+                if (first_player_win)score1 += 50;
+                else score2 += 50;
+                Draw->BeginDraw();
+                Draw->DrawBitmap(bmpIntro[IntroFrame.GetFrame()], D2D1::RectF(0, 0, scr_width, scr_height));
+                Draw->DrawTextW(L"МИНИМАЛЕН БОНУС !", 18, bigText,
+                    D2D1::RectF(300.0f, scr_height / 2 - 50.0f, scr_width, scr_height), hgltBrush);
+                Draw->EndDraw();
+                PlaySound(L".\\res\\snd\\bonus.wav", NULL, SND_SYNC);
+                Sleep(2000);
+            }
+        }
+    }
+
+    if (bigText && hgltBrush)
+    {
+        switch (CheckRecord())
+        {
+        case no_record:
+            Draw->BeginDraw();
+            Draw->DrawBitmap(bmpIntro[IntroFrame.GetFrame()], D2D1::RectF(0, 0, scr_width, scr_height));
+            Draw->DrawTextW(L"НЯМА РЕКОРД НА ИГРАТА !", 24, bigText,
+                D2D1::RectF(100.0f, scr_height / 2 - 50.0f, scr_width, scr_height), hgltBrush);
+            Draw->EndDraw();
+            PlaySound(L".\\res\\snd\\loose.wav", NULL, SND_SYNC);
+            Sleep(1500);
+            break;
+
+        case first_record:
+            Draw->BeginDraw();
+            Draw->DrawBitmap(bmpIntro[IntroFrame.GetFrame()], D2D1::RectF(0, 0, scr_width, scr_height));
+            Draw->DrawTextW(L"ПЪРВИ РЕКОРД НА ИГРАТА !", 25, bigText,
+                D2D1::RectF(100.0f, scr_height / 2 - 50.0f, scr_width, scr_height), hgltBrush);
+            Draw->EndDraw();
+            PlaySound(L".\\res\\snd\\record.wav", NULL, SND_SYNC);
+            Sleep(1500);
+            break;
+
+        case record:
+            Draw->BeginDraw();
+            Draw->DrawBitmap(bmpIntro[IntroFrame.GetFrame()], D2D1::RectF(0, 0, scr_width, scr_height));
+            Draw->DrawTextW(L"СВЕТОВЕН РЕКОРД НА ИГРАТА !", 28, bigText,
+                D2D1::RectF(50.0f, scr_height / 2 - 50.0f, scr_width, scr_height), hgltBrush);
+            Draw->EndDraw();
+            PlaySound(L".\\res\\snd\\record.wav", NULL, SND_SYNC);
+            Sleep(1500);
+            break;
+        }
+    }
 
     bMsg.message = WM_QUIT;
     bMsg.wParam = 0;
@@ -306,6 +500,8 @@ void InitGame()
     
     name1_set = false;
     name2_set = false;
+
+    show_help = false;
 
     player1_set = false;
     player2_set = false;
@@ -320,7 +516,7 @@ void InitGame()
     score1 = 0;
     score2 = 0;
 
-    turn_count = 0;
+    turn_count = 1;
 
     min_selected = false;
     small_selected = false;
@@ -374,6 +570,10 @@ void InitGame()
 
     vExplosions1.clear();
     vExplosions2.clear();
+}
+void ShowHelp()
+{
+
 }
 
 D2D1_RECT_F RectBound(dll::TILE what)
@@ -701,6 +901,22 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                 break;
 
             case VK_F1:
+                if (!show_help)
+                {
+                    show_help = true;
+                    pause = true;
+                    ShowHelp();
+                    break;
+                }
+                else
+                {
+                    show_help = false;
+                    pause = false;
+                    break;
+                }
+                break;
+
+            case VK_F2:
                 if (!first_player_turn)
                 {
                     if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
@@ -711,7 +927,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                 else show_grid1 = false;
                 break;
 
-            case VK_F2:
+            case VK_F3:
                 if (first_player_turn)
                 {
                     if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
