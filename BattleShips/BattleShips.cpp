@@ -93,8 +93,13 @@ bool first_player_turn = true;
 bool first_player_shoot = false;
 bool second_player_shoot = false;
 
+bool first_player_win = false;
+bool second_player_win = false;
+
 int score1 = 0;
 int score2 = 0;
+
+int turn_count = 0;
 
 bool min_selected = false;
 bool small_selected = false;
@@ -306,12 +311,16 @@ void InitGame()
     player2_set = false;
 
     first_player_turn = true;
+    first_player_win = false;
+    second_player_win = false;
 
     show_grid1 = false;
     show_grid2 = false;
 
     score1 = 0;
     score2 = 0;
+
+    turn_count = 0;
 
     min_selected = false;
     small_selected = false;
@@ -769,21 +778,24 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
             }
             if (LOWORD(lParam) >= b3Rect.left && LOWORD(lParam) <= b3Rect.right)
             {
-                if (sound)mciSendString(L"play .\\res\\snd\\select.wav", NULL, NULL, NULL);
+                Draw->BeginDraw();
+                Draw->DrawBitmap(bmpField[FieldFrame.GetFrame()], D2D1::RectF(0, 50.0f, scr_width, scr_height));
+                if (bigText && hgltBrush)Draw->DrawTextW(L"СЛЕДВАЩ ХОД !", 14, bigText, D2D1::RectF(scr_width / 2 - 200.0f,
+                    scr_height / 2 - 50.0f, scr_width, scr_height), hgltBrush);
+                Draw->EndDraw();
                 if (first_player_turn)
                 {
                     if (sound)mciSendString(L"play .\\res\\snd\\playertwo.wav", NULL, NULL, NULL);
                     first_player_turn = false;
                     show_grid1 = false;
-                    break;
                 }
                 else
                 {
                     if (sound)mciSendString(L"play .\\res\\snd\\playerone.wav", NULL, NULL, NULL);
                     first_player_turn = true;
                     show_grid2 = false;
-                    break;
                 }
+                Sleep(2000);
             }
         }
         else
@@ -1779,7 +1791,11 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                     first_player_shoot = true;
                     second_player_shoot = false;
 
-                    if (!vPl2Ships.empty() && target.state != dll::content::fire && target.state != dll::content::explosion)
+                    ++turn_count;
+
+                    if (!vPl2Ships.empty() &&
+                        grid2->grid[target.col][target.row].state != dll::content::fire
+                        && grid2->grid[target.col][target.row].state != dll::content::explosion)
                     {
                         attack_grid1->grid[target.col][target.row].state = dll::content::fire;
 
@@ -1787,13 +1803,12 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                         {
                             if (vPl2Ships[i]->get_type() == dll::ships::min_ship)
                             {
-                                if (vPl2Ships[i]->ship_tile[0].number == target.number)
+                                if (vPl2Ships[i]->ship_tile->number == target.number)
                                 {
-                                    if (vPl2Ships[i]->ship_tile[0].state != dll::content::used)break;
                                     vPl2Ships[i]->hit_ship(0);
-                                    vPl2Ships[i]->ship_tile[0].state = dll::content::explosion;
+                                    vPl2Ships[i]->ship_tile->state = dll::content::explosion;
                                     grid2->grid[target.col][target.row].state = dll::content::explosion;
-                                    
+
                                     score1 += 50;
 
                                     attack_grid1->grid[target.col][target.row].state = dll::content::explosion;
@@ -1933,18 +1948,191 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                             }
                         }
                     }
-
+                    
+                    if (sound)mciSendString(L"play .\\res\\snd\\missed.wav", NULL, NULL, NULL);
                 }
+                else
+                {
+                    if (second_player_shoot)
+                    {
+                        if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
+                        MessageBox(hwnd, L"Вече стреля през този ход !", L"Край на хода !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
+                        break;
+                    }
+
+                    dll::FPOINT f_cursor{ (float)(LOWORD(lParam) * render_target_x_scale),
+                            (float)(HIWORD(lParam) * render_target_y_scale) };
+
+                    dll::TILE target{ grid2->GetTileDims(grid2->GetTileNumber(f_cursor)) };
+
+                    first_player_shoot = false;
+                    second_player_shoot = true;
+
+                    if (!vPl1Ships.empty() &&
+                        grid1->grid[target.col][target.row].state != dll::content::fire
+                        && grid1->grid[target.col][target.row].state != dll::content::explosion)
+                    {
+                        attack_grid2->grid[target.col][target.row].state = dll::content::fire;
+
+                        for (int i = 0; i < vPl1Ships.size(); ++i)
+                        {
+                            if (vPl1Ships[i]->get_type() == dll::ships::min_ship)
+                            {
+                                if (vPl1Ships[i]->ship_tile->number == target.number)
+                                {
+                                    vPl1Ships[i]->hit_ship(0);
+                                    vPl1Ships[i]->ship_tile->state = dll::content::explosion;
+                                    grid1->grid[target.col][target.row].state = dll::content::explosion;
+
+                                    score2 += 50;
+
+                                    attack_grid2->grid[target.col][target.row].state = dll::content::explosion;
+
+                                    FRAMEBMP an_explosion{};
+                                    an_explosion.max_delay = 3;
+                                    an_explosion.max_frames = 25;
+                                    an_explosion.sx = attack_grid2->grid[target.col][target.row].start.x;
+                                    an_explosion.sy = attack_grid2->grid[target.col][target.row].start.y;
+                                    an_explosion.ex = attack_grid2->grid[target.col][target.row].end.x;
+                                    an_explosion.ey = attack_grid2->grid[target.col][target.row].end.y;
+                                    vExplosions2.push_back(an_explosion);
+
+                                    vPl1Ships.erase(vPl1Ships.begin() + i);
+
+                                    if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
+
+                                    break;
+                                }
+                            }
+                            else if (vPl1Ships[i]->get_type() == dll::ships::small_ship)
+                            {
+                                bool on_target = false;
+
+                                for (int k = 0; k < 2; ++k)
+                                {
+                                    if (vPl1Ships[i]->ship_tile[k].number == target.number)
+                                    {
+                                        if (vPl1Ships[i]->ship_tile[k].state != dll::content::used)break;
+                                        vPl1Ships[i]->hit_ship(k);
+                                        vPl1Ships[i]->ship_tile[k].state = dll::content::explosion;
+                                        grid1->grid[target.col][target.row].state = dll::content::explosion;
+
+                                        if (vPl1Ships[i]->ship_healt() <= 0) vPl1Ships.erase(vPl1Ships.begin() + i);
+
+                                        FRAMEBMP an_explosion{};
+                                        an_explosion.max_delay = 3;
+                                        an_explosion.max_frames = 25;
+                                        an_explosion.sx = attack_grid2->grid[target.col][target.row].start.x;
+                                        an_explosion.sy = attack_grid2->grid[target.col][target.row].start.y;
+                                        an_explosion.ex = attack_grid2->grid[target.col][target.row].end.x;
+                                        an_explosion.ey = attack_grid2->grid[target.col][target.row].end.y;
+                                        vExplosions2.push_back(an_explosion);
+
+                                        score2 += 50;
+
+                                        on_target = true;
+
+                                        attack_grid2->grid[target.col][target.row].state = dll::content::explosion;
+
+                                        if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
+
+                                        break;
+                                    }
+                                }
+
+                                if (on_target)break;
+                            }
+                            else if (vPl1Ships[i]->get_type() == dll::ships::mid_ship1
+                                || vPl1Ships[i]->get_type() == dll::ships::mid_ship2)
+                            {
+                                bool on_target = false;
+
+                                for (int k = 0; k < 3; ++k)
+                                {
+                                    if (vPl1Ships[i]->ship_tile[k].number == target.number)
+                                    {
+                                        if (vPl1Ships[i]->ship_tile[k].state != dll::content::used)break;
+                                        vPl1Ships[i]->hit_ship(k);
+                                        vPl1Ships[i]->ship_tile[k].state = dll::content::explosion;
+                                        grid1->grid[target.col][target.row].state = dll::content::explosion;
 
 
+                                        if (vPl1Ships[i]->ship_healt() <= 0) vPl1Ships.erase(vPl1Ships.begin() + i);
+
+                                        FRAMEBMP an_explosion{};
+                                        an_explosion.max_delay = 3;
+                                        an_explosion.max_frames = 25;
+                                        an_explosion.sx = attack_grid2->grid[target.col][target.row].start.x;
+                                        an_explosion.sy = attack_grid2->grid[target.col][target.row].start.y;
+                                        an_explosion.ex = attack_grid2->grid[target.col][target.row].end.x;
+                                        an_explosion.ey = attack_grid2->grid[target.col][target.row].end.y;
+                                        vExplosions2.push_back(an_explosion);
+
+                                        score2 += 50;
+
+                                        on_target = true;
+
+                                        attack_grid2->grid[target.col][target.row].state = dll::content::explosion;
+
+                                        if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
+
+                                        break;
+                                    }
+                                }
+
+                                if (on_target)break;
+                            }
+                            else if (vPl1Ships[i]->get_type() == dll::ships::big_ship1
+                                || vPl1Ships[i]->get_type() == dll::ships::big_ship2)
+                            {
+                                bool on_target = false;
+
+                                for (int k = 0; k < 4; ++k)
+                                {
+                                    if (vPl1Ships[i]->ship_tile[k].number == target.number)
+                                    {
+                                        if (vPl1Ships[i]->ship_tile[k].state != dll::content::used)break;
+                                        vPl1Ships[i]->hit_ship(k);
+                                        vPl1Ships[i]->ship_tile[k].state = dll::content::explosion;
+                                        grid1->grid[target.col][target.row].state = dll::content::explosion;
+
+                                        if (vPl1Ships[i]->ship_healt() <= 0) vPl2Ships.erase(vPl1Ships.begin() + i);
+
+                                        FRAMEBMP an_explosion{};
+                                        an_explosion.max_delay = 3;
+                                        an_explosion.max_frames = 25;
+                                        an_explosion.sx = attack_grid2->grid[target.col][target.row].start.x;
+                                        an_explosion.sy = attack_grid2->grid[target.col][target.row].start.y;
+                                        an_explosion.ex = attack_grid2->grid[target.col][target.row].end.x;
+                                        an_explosion.ey = attack_grid2->grid[target.col][target.row].end.y;
+                                        vExplosions2.push_back(an_explosion);
+
+                                        score2 += 50;
+
+                                        on_target = true;
+
+                                        attack_grid2->grid[target.col][target.row].state = dll::content::explosion;
+
+                                        if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
+
+                                        break;
+                                    }
+                                }
+
+                                if (on_target)break;
+                            }
+                        }
+                    }
+                    
+                    if (sound)mciSendString(L"play .\\res\\snd\\missed.wav", NULL, NULL, NULL);
+                }
             }
         }
         break;
 
-    
-     
     default: return DefWindowProc(hwnd, ReceivedMsg, wParam, lParam);
     }
+
     return (LRESULT)(FALSE);
 }
 
@@ -2345,9 +2533,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     
     /////////////////////////////////////////////
 
+        if (player1_set && player2_set)
+        {
+            if (vPl1Ships.empty())second_player_win = true;
+            if (vPl2Ships.empty())first_player_win = true;
 
-
-
+            if (first_player_win || second_player_win)
+            {
+                Draw->EndDraw();
+                GameOver();
+            }
+        }
 
 
     // DRAW THINGS ******************************
@@ -2394,6 +2590,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         if ((!player1_set || !player2_set) && nrmText && txtBrush)
             Draw->DrawTextW(L"ПОСТАВИ КОРАБ: ", 16, nrmText, D2D1::RectF(905.0f, scr_height / 2 - 200.0f, scr_width,
                 scr_height / 2 - 100.0f), txtBrush);
+        else if (nrmText && txtBrush)
+        {
+            wchar_t play_txt[30]{ L"ХОД: " };
+            wchar_t add[5]{ L"\0" };
+            wsprintf(add, L"%d", turn_count);
+
+            wcscat_s(play_txt, add);
+            int pl_size = 0;
+
+            for (int i = 0; i < 30; ++i)
+            {
+                if (play_txt[i] != '\0')++pl_size;
+                else break;
+            }
+
+            Draw->DrawTextW(play_txt, pl_size, nrmText, D2D1::RectF(940.0f, 300.0f, scr_width, scr_height), txtBrush);
+        }
 
         if (first_player_turn)
         {
@@ -2424,6 +2637,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             if (nrmText && txtBrush)
                 Draw->DrawTextW(play_txt, pl_size, nrmText, D2D1::RectF(905.0f, 60.0f, scr_width, 200.0f), txtBrush);
         }
+
         
         if (erase_current_ship)
         {
@@ -2635,17 +2849,25 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             }
             else
             {
+                for (int cols = 0; cols < MAX_COLS; ++cols)
+                {
+                    for (int rows = 0; rows < MAX_ROWS; ++rows)
+                    {
+                        Draw->DrawRectangle(RectBound(attack_grid2->grid[cols][rows]), GreenBoundBrush);
 
+                        if (attack_grid2->grid[cols][rows].state == dll::content::fire)
+                            Draw->DrawBitmap(bmpMissed, RectBound(attack_grid2->grid[cols][rows]));
 
-
+                        if (!vExplosions2.empty())
+                        {
+                            for (int i = 0; i < vExplosions2.size(); ++i)
+                                Draw->DrawBitmap(bmpExplosion[vExplosions2[i].GetFrame()], D2D1::RectF(vExplosions2[i].sx,
+                                    vExplosions2[i].sy, vExplosions2[i].ex, vExplosions2[i].ey));
+                        }
+                    }
+                }
             }
         }
-
-
-
-        
-
-
 
         /////////////////////////////////////////
         
