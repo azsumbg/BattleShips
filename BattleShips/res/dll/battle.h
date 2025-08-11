@@ -38,8 +38,6 @@ namespace dll
 		int col{ 0 };
 		int row{ 0 };
 		
-		bool bombarded = false;
-
 		content state = content::free;
 	};
 
@@ -94,6 +92,7 @@ namespace dll
 		SHIP(ships _type, TILE* _ship_tile, int size, dirs _to_where);
 
 		int ship_healt() const;
+		void set_ship_healt(int alive_parts);
 		void hit_ship(int which_part);
 		ships get_type()const;
 

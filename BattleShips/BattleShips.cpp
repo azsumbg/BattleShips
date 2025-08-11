@@ -740,6 +740,94 @@ void SaveGame()
         for (int i = 0; i < vPl1Ships.size(); ++i)
         {
             save << static_cast<int>(vPl1Ships[i]->get_type()) << std::endl;
+            save << static_cast<int>(vPl1Ships[i]->dir) << std::endl;
+            save << vPl1Ships[i]->ship_healt() << std::endl;
+
+            switch (vPl1Ships[i]->get_type())
+            {
+            case dll::ships::min_ship:
+                {
+                    save << vPl1Ships[i]->ship_tile->col << std::endl;
+                    save << vPl1Ships[i]->ship_tile->row << std::endl;
+                    save << vPl1Ships[i]->ship_tile->number << std::endl;
+                    save << vPl1Ships[i]->ship_tile->start.x << std::endl;
+                    save << vPl1Ships[i]->ship_tile->start.y << std::endl;
+                    save << vPl1Ships[i]->ship_tile->end.x << std::endl;
+                    save << vPl1Ships[i]->ship_tile->end.y << std::endl;
+                    save << static_cast<int>(vPl1Ships[i]->ship_tile->state) << std::endl;
+                }
+                break;
+
+            case dll::ships::small_ship:
+                for (int i = 0; i < 2; ++i)
+                {
+                    save << vPl1Ships[i]->ship_tile->col << std::endl;
+                    save << vPl1Ships[i]->ship_tile->row << std::endl;
+                    save << vPl1Ships[i]->ship_tile->number << std::endl;
+                    save << vPl1Ships[i]->ship_tile->start.x << std::endl;
+                    save << vPl1Ships[i]->ship_tile->start.y << std::endl;
+                    save << vPl1Ships[i]->ship_tile->end.x << std::endl;
+                    save << vPl1Ships[i]->ship_tile->end.y << std::endl;
+                    save << static_cast<int>(vPl1Ships[i]->ship_tile->state) << std::endl;
+                }
+                break;
+
+            case dll::ships::mid_ship1:
+                for (int i = 0; i < 3; ++i)
+                {
+                    save << vPl1Ships[i]->ship_tile->col << std::endl;
+                    save << vPl1Ships[i]->ship_tile->row << std::endl;
+                    save << vPl1Ships[i]->ship_tile->number << std::endl;
+                    save << vPl1Ships[i]->ship_tile->start.x << std::endl;
+                    save << vPl1Ships[i]->ship_tile->start.y << std::endl;
+                    save << vPl1Ships[i]->ship_tile->end.x << std::endl;
+                    save << vPl1Ships[i]->ship_tile->end.y << std::endl;
+                    save << static_cast<int>(vPl1Ships[i]->ship_tile->state) << std::endl;
+                }
+                break;
+
+            case dll::ships::mid_ship2:
+                for (int i = 0; i < 3; ++i)
+                {
+                    save << vPl1Ships[i]->ship_tile->col << std::endl;
+                    save << vPl1Ships[i]->ship_tile->row << std::endl;
+                    save << vPl1Ships[i]->ship_tile->number << std::endl;
+                    save << vPl1Ships[i]->ship_tile->start.x << std::endl;
+                    save << vPl1Ships[i]->ship_tile->start.y << std::endl;
+                    save << vPl1Ships[i]->ship_tile->end.x << std::endl;
+                    save << vPl1Ships[i]->ship_tile->end.y << std::endl;
+                    save << static_cast<int>(vPl1Ships[i]->ship_tile->state) << std::endl;
+                }
+                break;
+
+            case dll::ships::big_ship1:
+                for (int i = 0; i < 4; ++i)
+                {
+                    save << vPl1Ships[i]->ship_tile->col << std::endl;
+                    save << vPl1Ships[i]->ship_tile->row << std::endl;
+                    save << vPl1Ships[i]->ship_tile->number << std::endl;
+                    save << vPl1Ships[i]->ship_tile->start.x << std::endl;
+                    save << vPl1Ships[i]->ship_tile->start.y << std::endl;
+                    save << vPl1Ships[i]->ship_tile->end.x << std::endl;
+                    save << vPl1Ships[i]->ship_tile->end.y << std::endl;
+                    save << static_cast<int>(vPl1Ships[i]->ship_tile->state) << std::endl;
+                }
+                break;
+
+            case dll::ships::big_ship2:
+                for (int i = 0; i < 4; ++i)
+                {
+                    save << vPl1Ships[i]->ship_tile->col << std::endl;
+                    save << vPl1Ships[i]->ship_tile->row << std::endl;
+                    save << vPl1Ships[i]->ship_tile->number << std::endl;
+                    save << vPl1Ships[i]->ship_tile->start.x << std::endl;
+                    save << vPl1Ships[i]->ship_tile->start.y << std::endl;
+                    save << vPl1Ships[i]->ship_tile->end.x << std::endl;
+                    save << vPl1Ships[i]->ship_tile->end.y << std::endl;
+                    save << static_cast<int>(vPl1Ships[i]->ship_tile->state) << std::endl;
+                }
+                break;
+            }
         }
     }
 
