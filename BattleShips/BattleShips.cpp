@@ -656,6 +656,94 @@ void ShowHelp()
         if (sound)mciSendString(L"play .\\res\\snd\\showhelp.wav", NULL, NULL, NULL);
     }
 }
+void SaveGame()
+{
+    int result{ 0 };
+    CheckFile(save_file, &result);
+
+    if (result == FILE_NOT_EXIST)
+    {
+        if (sound)mciSendString(L"play .\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
+        MessageBox(bHwnd, L"Все още няма записана игра !\n\nПостарай се повече !", L"Липсва файл !",
+            MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
+        return;
+    }
+    else
+    {
+        if (sound)mciSendString(L"play .\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
+        if (MessageBox(bHwnd, L"Ако презаредиш, губиш тази игра !\n\nНаистина ли презареждаш ?",
+            L"Презареждане", MB_YESNO | MB_APPLMODAL | MB_ICONEXCLAMATION) == IDNO) return;
+    }
+
+    std::wofstream save(save_file);
+
+    save << score1 << std::endl;
+    save << score2 << std::endl;
+    for (int i = 0; i < 16; ++i)save << static_cast<wchar_t>(player1[i]) << std::endl;
+    for (int i = 0; i < 16; ++i)save << static_cast<wchar_t>(player2[i]) << std::endl;
+    save << player1_set << std::endl;
+    save << player2_set << std::endl;
+
+    save << first_player_turn << std::endl;
+    save << first_player_win << std::endl;
+    save << second_player_win << std::endl;
+
+    save << show_grid1 << std::endl;
+    save << show_grid2 << std::endl;
+
+    save << turn_count << std::endl;
+
+    save << min_selected << std::endl;
+    save << small_selected << std::endl;
+    save << mid_selected << std::endl;
+    save << big_selected << std::endl;
+
+    save << erase_current_ship << std::endl;
+    save << first_player_shoot << std::endl;
+    save << second_player_shoot << std::endl;
+
+    save << pl1_min_deployed << std::endl;
+    save << pl1_small_deployed << std::endl;
+    save << pl1_mid_deployed << std::endl;
+    save << pl1_min_deployed << std::endl;
+
+    save << pl2_min_deployed << std::endl;
+    save << pl2_small_deployed << std::endl;
+    save << pl2_mid_deployed << std::endl;
+    save << pl2_min_deployed << std::endl;
+
+    for (int i = 0; i < MAX_COLS; i++)
+    {
+        for (int k = 0; k < MAX_ROWS; ++k)
+            save << static_cast<int>(grid1->grid[i][k].state) << std::endl;
+    }
+    for (int i = 0; i < MAX_COLS; i++)
+    {
+        for (int k = 0; k < MAX_ROWS; ++k)
+            save << static_cast<int>(grid2->grid[i][k].state) << std::endl;
+    }
+
+    for (int i = 0; i < MAX_COLS; i++)
+    {
+        for (int k = 0; k < MAX_ROWS; ++k)
+            save << static_cast<int>(attack_grid1->grid[i][k].state) << std::endl;
+    }
+    for (int i = 0; i < MAX_COLS; i++)
+    {
+        for (int k = 0; k < MAX_ROWS; ++k)
+            save << static_cast<int>(attack_grid2->grid[i][k].state) << std::endl;
+    }
+
+    save << vPl1Ships.size() << std::endl;
+    if (!vPl1Ships.empty())
+    {
+        for (int i = 0; i < vPl1Ships.size(); ++i)
+        {
+            save << static_cast<int>(vPl1Ships[i]->get_type()) << std::endl;
+        }
+    }
+
+}
 
 D2D1_RECT_F RectBound(dll::TILE what)
 {
@@ -747,7 +835,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
     case WM_CLOSE:
         pause = true;
         if (sound)mciSendString(L"play .\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
-        if (MessageBox(hwnd, L"Ако излезете, губите тази игра !\n\nНаистина ли излизате !",
+        if (MessageBox(hwnd, L"Ако излезете, губите тази игра !\n\nНаистина ли излизате ?",
             L"Изход", MB_YESNO | MB_APPLMODAL | MB_ICONEXCLAMATION) == IDNO)
         {
             pause = false;
@@ -847,7 +935,7 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
         case mNew:
             pause = true;
             if (sound)mciSendString(L"play .\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
-            if (MessageBox(hwnd, L"Ако рестартирате, губите тази игра !\n\nНаистина ли рестартирате !",
+            if (MessageBox(hwnd, L"Ако рестартирате, губите тази игра !\n\nНаистина ли рестартирате ?",
                 L"Рестарт", MB_YESNO | MB_APPLMODAL | MB_ICONEXCLAMATION) == IDNO)
             {
                 pause = false;
@@ -2121,7 +2209,9 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
 
                                     vPl2Ships.erase(vPl2Ships.begin() + i);
 
-                                    if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
+                                    if (sound)mciSendString(L"play .\\res\\snd\\destroyed.wav", NULL, NULL, NULL);
+                                    MessageBox(hwnd, L"Потопи този кораб !", L"Точен мерник !",
+                                        MB_OK | MB_APPLMODAL | MB_ICONINFORMATION);
 
                                     break;
                                 }
@@ -2139,7 +2229,14 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                         vPl2Ships[i]->ship_tile[k].state = dll::content::explosion;
                                         grid2->grid[target.col][target.row].state = dll::content::explosion;
 
-                                        if (vPl2Ships[i]->ship_healt() <= 0) vPl2Ships.erase(vPl2Ships.begin() + i);
+                                        if (vPl2Ships[i]->ship_healt() <= 0)
+                                        {
+                                            if (sound)mciSendString(L"play .\\res\\snd\\destroyed.wav", NULL, NULL, NULL);
+                                            MessageBox(hwnd, L"Потопи този кораб !", L"Точен мерник !",
+                                                MB_OK | MB_APPLMODAL | MB_ICONINFORMATION);
+                                            vPl2Ships.erase(vPl2Ships.begin() + i);
+                                        }
+                                        else if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
 
                                         FRAMEBMP an_explosion{};
                                         an_explosion.max_delay = 3;
@@ -2155,8 +2252,6 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                         on_target = true;
 
                                         attack_grid1->grid[target.col][target.row].state = dll::content::explosion;
-
-                                        if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
 
                                         break;
                                     }
@@ -2179,7 +2274,14 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                         grid2->grid[target.col][target.row].state = dll::content::explosion;
 
 
-                                        if (vPl2Ships[i]->ship_healt() <= 0) vPl2Ships.erase(vPl2Ships.begin() + i);
+                                        if (vPl2Ships[i]->ship_healt() <= 0) 
+                                        {
+                                            if (sound)mciSendString(L"play .\\res\\snd\\destroyed.wav", NULL, NULL, NULL);
+                                            MessageBox(hwnd, L"Потопи този кораб !", L"Точен мерник !",
+                                                MB_OK | MB_APPLMODAL | MB_ICONINFORMATION);
+                                            vPl2Ships.erase(vPl2Ships.begin() + i);
+                                        }
+                                        else if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
 
                                         FRAMEBMP an_explosion{};
                                         an_explosion.max_delay = 3;
@@ -2195,8 +2297,6 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                         on_target = true;
 
                                         attack_grid1->grid[target.col][target.row].state = dll::content::explosion;
-
-                                        if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
 
                                         break;
                                     }
@@ -2218,7 +2318,14 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                         vPl2Ships[i]->ship_tile[k].state = dll::content::explosion;
                                         grid2->grid[target.col][target.row].state = dll::content::explosion;
 
-                                        if (vPl2Ships[i]->ship_healt() <= 0) vPl2Ships.erase(vPl2Ships.begin() + i);
+                                        if (vPl2Ships[i]->ship_healt() <= 0) 
+                                        {
+                                            if (sound)mciSendString(L"play .\\res\\snd\\destroyed.wav", NULL, NULL, NULL);
+                                            MessageBox(hwnd, L"Потопи този кораб !", L"Точен мерник !",
+                                                MB_OK | MB_APPLMODAL | MB_ICONINFORMATION);
+                                            vPl2Ships.erase(vPl2Ships.begin() + i);
+                                        }
+                                        else if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
 
                                         FRAMEBMP an_explosion{};
                                         an_explosion.max_delay = 3;
@@ -2234,8 +2341,6 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                         on_target = true;
 
                                         attack_grid1->grid[target.col][target.row].state = dll::content::explosion;
-
-                                        if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
 
                                         break;
                                     }
@@ -2296,7 +2401,9 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
 
                                     vPl1Ships.erase(vPl1Ships.begin() + i);
 
-                                    if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
+                                    if (sound)mciSendString(L"play .\\res\\snd\\destroyed.wav", NULL, NULL, NULL);
+                                    MessageBox(hwnd, L"Потопи този кораб !", L"Точен мерник !",
+                                        MB_OK | MB_APPLMODAL | MB_ICONINFORMATION);
 
                                     break;
                                 }
@@ -2314,7 +2421,14 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                         vPl1Ships[i]->ship_tile[k].state = dll::content::explosion;
                                         grid1->grid[target.col][target.row].state = dll::content::explosion;
 
-                                        if (vPl1Ships[i]->ship_healt() <= 0) vPl1Ships.erase(vPl1Ships.begin() + i);
+                                        if (vPl1Ships[i]->ship_healt() <= 0) 
+                                        {
+                                            if (sound)mciSendString(L"play .\\res\\snd\\destroyed.wav", NULL, NULL, NULL);
+                                            MessageBox(hwnd, L"Потопи този кораб !", L"Точен мерник !",
+                                                MB_OK | MB_APPLMODAL | MB_ICONINFORMATION);
+                                            vPl1Ships.erase(vPl1Ships.begin() + i);
+                                        }
+                                        else if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
 
                                         FRAMEBMP an_explosion{};
                                         an_explosion.max_delay = 3;
@@ -2330,8 +2444,6 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                         on_target = true;
 
                                         attack_grid2->grid[target.col][target.row].state = dll::content::explosion;
-
-                                        if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
 
                                         break;
                                     }
@@ -2354,7 +2466,14 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                         grid1->grid[target.col][target.row].state = dll::content::explosion;
 
 
-                                        if (vPl1Ships[i]->ship_healt() <= 0) vPl1Ships.erase(vPl1Ships.begin() + i);
+                                        if (vPl1Ships[i]->ship_healt() <= 0)
+                                        {
+                                            if (sound)mciSendString(L"play .\\res\\snd\\destroyed.wav", NULL, NULL, NULL);
+                                            MessageBox(hwnd, L"Потопи този кораб !", L"Точен мерник !",
+                                                MB_OK | MB_APPLMODAL | MB_ICONINFORMATION);
+                                            vPl1Ships.erase(vPl1Ships.begin() + i);
+                                        }
+                                        else if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
 
                                         FRAMEBMP an_explosion{};
                                         an_explosion.max_delay = 3;
@@ -2370,8 +2489,6 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                         on_target = true;
 
                                         attack_grid2->grid[target.col][target.row].state = dll::content::explosion;
-
-                                        if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
 
                                         break;
                                     }
@@ -2393,7 +2510,14 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                         vPl1Ships[i]->ship_tile[k].state = dll::content::explosion;
                                         grid1->grid[target.col][target.row].state = dll::content::explosion;
 
-                                        if (vPl1Ships[i]->ship_healt() <= 0) vPl2Ships.erase(vPl1Ships.begin() + i);
+                                        if (vPl1Ships[i]->ship_healt() <= 0)
+                                        {
+                                            if (sound)mciSendString(L"play .\\res\\snd\\destroyed.wav", NULL, NULL, NULL);
+                                            MessageBox(hwnd, L"Потопи този кораб !", L"Точен мерник !",
+                                                MB_OK | MB_APPLMODAL | MB_ICONINFORMATION);
+                                            vPl1Ships.erase(vPl1Ships.begin() + i);
+                                        }
+                                        else if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
 
                                         FRAMEBMP an_explosion{};
                                         an_explosion.max_delay = 3;
@@ -2409,8 +2533,6 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
                                         on_target = true;
 
                                         attack_grid2->grid[target.col][target.row].state = dll::content::explosion;
-
-                                        if (sound)mciSendString(L"play .\\res\\snd\\explosion.wav", NULL, NULL, NULL);
 
                                         break;
                                     }
