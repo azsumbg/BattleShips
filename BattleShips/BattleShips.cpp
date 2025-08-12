@@ -1633,7 +1633,8 @@ LRESULT CALLBACK WinProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
         break;
 
     case WM_KEYDOWN:
-        if ((first_player_turn && player1_set)|| (!first_player_turn && player2_set))
+        if (((first_player_turn && player1_set)|| (!first_player_turn && player2_set)) 
+            && wParam != VK_F1 && wParam != VK_F2 && wParam != VK_F3)
         {
             if (sound)mciSendString(L"play .\\res\\snd\\negative.wav", NULL, NULL, NULL);
             MessageBox(hwnd, L"Флотът вече е поставен !", L"Играта почна !", MB_OK | MB_APPLMODAL | MB_ICONERROR);
