@@ -542,17 +542,33 @@ void InitGame()
     IntroFrame.max_frames = 18;
 
     //////////////////////////////////////////
-
-    if (grid1)grid1->Release();
+    
+    if (grid1)
+    {
+        delete grid1; 
+        grid1 = nullptr;
+    }
     grid1 = new dll::GRID();
     
-    if (grid2)grid2->Release();
+    if (grid2)
+    {
+        delete grid2;
+        grid2 = nullptr;
+    }
     grid2 = new dll::GRID();
 
-    if (attack_grid1)attack_grid1->Release();
+    if (attack_grid1)
+    {
+        delete attack_grid1;
+        attack_grid1 = nullptr;
+    }
     attack_grid1 = new dll::GRID();
 
-    if (attack_grid2)attack_grid2->Release();
+    if (attack_grid2)
+    {
+        delete attack_grid2;
+        attack_grid2 = nullptr;
+    }
     attack_grid2 = new dll::GRID();
 
     if (!vPl1Ships.empty())
@@ -734,14 +750,14 @@ void SaveGame()
             {
             case dll::ships::min_ship:
                 {
-                    save << vPl1Ships[i]->ship_tile->col << std::endl;
-                    save << vPl1Ships[i]->ship_tile->row << std::endl;
-                    save << vPl1Ships[i]->ship_tile->number << std::endl;
-                    save << vPl1Ships[i]->ship_tile->start.x << std::endl;
-                    save << vPl1Ships[i]->ship_tile->start.y << std::endl;
-                    save << vPl1Ships[i]->ship_tile->end.x << std::endl;
-                    save << vPl1Ships[i]->ship_tile->end.y << std::endl;
-                    save << static_cast<int>(vPl1Ships[i]->ship_tile->state) << std::endl;
+                    save << vPl1Ships[i]->ship_tile[0].col << std::endl;
+                    save << vPl1Ships[i]->ship_tile[0].row << std::endl;
+                    save << vPl1Ships[i]->ship_tile[0].number << std::endl;
+                    save << vPl1Ships[i]->ship_tile[0].start.x << std::endl;
+                    save << vPl1Ships[i]->ship_tile[0].start.y << std::endl;
+                    save << vPl1Ships[i]->ship_tile[0].end.x << std::endl;
+                    save << vPl1Ships[i]->ship_tile[0].end.y << std::endl;
+                    save << static_cast<int>(vPl1Ships[i]->ship_tile[0].state) << std::endl;
                 }
                 break;
 
@@ -830,19 +846,19 @@ void SaveGame()
             {
             case dll::ships::min_ship:
             {
-                save << vPl2Ships[i]->ship_tile->col << std::endl;
-                save << vPl2Ships[i]->ship_tile->row << std::endl;
-                save << vPl2Ships[i]->ship_tile->number << std::endl;
-                save << vPl2Ships[i]->ship_tile->start.x << std::endl;
-                save << vPl2Ships[i]->ship_tile->start.y << std::endl;
-                save << vPl2Ships[i]->ship_tile->end.x << std::endl;
-                save << vPl2Ships[i]->ship_tile->end.y << std::endl;
-                save << static_cast<int>(vPl2Ships[i]->ship_tile->state) << std::endl;
+                save << vPl2Ships[i]->ship_tile[0].col << std::endl;
+                save << vPl2Ships[i]->ship_tile[0].row << std::endl;
+                save << vPl2Ships[i]->ship_tile[0].number << std::endl;
+                save << vPl2Ships[i]->ship_tile[0].start.x << std::endl;
+                save << vPl2Ships[i]->ship_tile[0].start.y << std::endl;
+                save << vPl2Ships[i]->ship_tile[0].end.x << std::endl;
+                save << vPl2Ships[i]->ship_tile[0].end.y << std::endl;
+                save << static_cast<int>(vPl2Ships[i]->ship_tile[0].state) << std::endl;
             }
             break;
 
             case dll::ships::small_ship:
-                for (int k = 0; k < 2; ++i)
+                for (int k = 0; k < 2; ++k)
                 {
                     save << vPl2Ships[i]->ship_tile[k].col << std::endl;
                     save << vPl2Ships[i]->ship_tile[k].row << std::endl;
@@ -856,7 +872,7 @@ void SaveGame()
                 break;
 
             case dll::ships::mid_ship1:
-                for (int k = 0; k < 3; ++i)
+                for (int k = 0; k < 3; ++k)
                 {
                     save << vPl2Ships[i]->ship_tile[k].col << std::endl;
                     save << vPl2Ships[i]->ship_tile[k].row << std::endl;
@@ -870,7 +886,7 @@ void SaveGame()
                 break;
 
             case dll::ships::mid_ship2:
-                for (int k = 0; k < 3; ++i)
+                for (int k = 0; k < 3; ++k)
                 {
                     save << vPl2Ships[i]->ship_tile[k].col << std::endl;
                     save << vPl2Ships[i]->ship_tile[k].row << std::endl;
@@ -884,7 +900,7 @@ void SaveGame()
                 break;
 
             case dll::ships::big_ship1:
-                for (int k = 0; k < 4; ++i)
+                for (int k = 0; k < 4; ++k)
                 {
                     save << vPl2Ships[i]->ship_tile[k].col << std::endl;
                     save << vPl2Ships[i]->ship_tile[k].row << std::endl;
@@ -898,7 +914,7 @@ void SaveGame()
                 break;
 
             case dll::ships::big_ship2:
-                for (int k = 0; k < 4; ++i)
+                for (int k = 0; k < 4; ++k)
                 {
                     save << vPl2Ships[i]->ship_tile[k].col << std::endl;
                     save << vPl2Ships[i]->ship_tile[k].row << std::endl;
@@ -1091,7 +1107,10 @@ void LoadGame()
                 break;
 
             case dll::ships::small_ship:
-                for (int i = 0; i < 2; ++i)
+            {
+                dll::TILE temp_ship_array[2]{};
+
+                for (int k = 0; k < 2; ++k)
                 {
                     dll::TILE temp_ship_tile;
                     int temp_state = 0;
@@ -1107,14 +1126,19 @@ void LoadGame()
                     save >> temp_state;
                     temp_ship_tile.state = static_cast<dll::content>(temp_state);
 
-                    vPl1Ships.push_back(dll::ShipFactory(dll::ships::small_ship, &temp_ship_tile, 2,
-                        static_cast<dll::dirs>(temp_dir), *grid1));
-                    vPl1Ships.back()->set_ship_healt(temp_health);
+                    temp_ship_array[k] = temp_ship_tile;
                 }
+                vPl1Ships.push_back(dll::ShipFactory(dll::ships::small_ship, temp_ship_array, 2,
+                    static_cast<dll::dirs>(temp_dir), *grid1));
+                vPl1Ships.back()->set_ship_healt(temp_health);
+            }
                 break;
 
             case dll::ships::mid_ship1:
-                for (int i = 0; i < 3; ++i)
+            {
+                dll::TILE temp_ship_array[3]{};
+
+                for (int k = 0; k < 3; ++k)
                 {
                     dll::TILE temp_ship_tile;
                     int temp_state = 0;
@@ -1130,14 +1154,19 @@ void LoadGame()
                     save >> temp_state;
                     temp_ship_tile.state = static_cast<dll::content>(temp_state);
 
-                    vPl1Ships.push_back(dll::ShipFactory(dll::ships::mid_ship1, &temp_ship_tile, 3,
-                        static_cast<dll::dirs>(temp_dir), *grid1));
-                    vPl1Ships.back()->set_ship_healt(temp_health);
+                    temp_ship_array[k] = temp_ship_tile;
                 }
+                vPl1Ships.push_back(dll::ShipFactory(dll::ships::mid_ship1, temp_ship_array, 3,
+                    static_cast<dll::dirs>(temp_dir), *grid1));
+                vPl1Ships.back()->set_ship_healt(temp_health);
+            }
                 break;
 
             case dll::ships::mid_ship2:
-                for (int i = 0; i < 3; ++i)
+            {
+                dll::TILE temp_ship_array[3]{};
+
+                for (int k = 0; k < 3; ++k)
                 {
                     dll::TILE temp_ship_tile;
                     int temp_state = 0;
@@ -1153,14 +1182,19 @@ void LoadGame()
                     save >> temp_state;
                     temp_ship_tile.state = static_cast<dll::content>(temp_state);
 
-                    vPl1Ships.push_back(dll::ShipFactory(dll::ships::mid_ship2, &temp_ship_tile, 3,
-                        static_cast<dll::dirs>(temp_dir), *grid1));
-                    vPl1Ships.back()->set_ship_healt(temp_health);
+                    temp_ship_array[k] = temp_ship_tile;
                 }
+                vPl1Ships.push_back(dll::ShipFactory(dll::ships::mid_ship2, temp_ship_array, 3,
+                    static_cast<dll::dirs>(temp_dir), *grid1));
+                vPl1Ships.back()->set_ship_healt(temp_health);
+            }
                 break;
 
             case dll::ships::big_ship1:
-                for (int i = 0; i < 4; ++i)
+            {
+                dll::TILE temp_ship_array[4]{};
+
+                for (int k = 0; k < 4; ++k)
                 {
                     dll::TILE temp_ship_tile;
                     int temp_state = 0;
@@ -1176,14 +1210,19 @@ void LoadGame()
                     save >> temp_state;
                     temp_ship_tile.state = static_cast<dll::content>(temp_state);
 
-                    vPl1Ships.push_back(dll::ShipFactory(dll::ships::big_ship1, &temp_ship_tile, 4,
-                        static_cast<dll::dirs>(temp_dir), *grid1));
-                    vPl1Ships.back()->set_ship_healt(temp_health);
+                    temp_ship_array[k] = temp_ship_tile;
                 }
+                vPl1Ships.push_back(dll::ShipFactory(dll::ships::mid_ship1, temp_ship_array, 4,
+                    static_cast<dll::dirs>(temp_dir), *grid1));
+                vPl1Ships.back()->set_ship_healt(temp_health);
+            }
                 break;
 
             case dll::ships::big_ship2:
-                for (int i = 0; i < 4; ++i)
+            {
+                dll::TILE temp_ship_array[4]{};
+
+                for (int k = 0; k < 4; ++k)
                 {
                     dll::TILE temp_ship_tile;
                     int temp_state = 0;
@@ -1199,10 +1238,12 @@ void LoadGame()
                     save >> temp_state;
                     temp_ship_tile.state = static_cast<dll::content>(temp_state);
 
-                    vPl1Ships.push_back(dll::ShipFactory(dll::ships::big_ship2, &temp_ship_tile, 4,
-                        static_cast<dll::dirs>(temp_dir), *grid1));
-                    vPl1Ships.back()->set_ship_healt(temp_health);
+                    temp_ship_array[k] = temp_ship_tile;
                 }
+                vPl1Ships.push_back(dll::ShipFactory(dll::ships::mid_ship1, temp_ship_array, 4,
+                    static_cast<dll::dirs>(temp_dir), *grid1));
+                vPl1Ships.back()->set_ship_healt(temp_health);
+            }
                 break;
             }
         }
@@ -1245,7 +1286,10 @@ void LoadGame()
             break;
 
             case dll::ships::small_ship:
-                for (int i = 0; i < 2; ++i)
+            {
+                dll::TILE temp_ship_array[2]{};
+
+                for (int k = 0; k < 2; ++k)
                 {
                     dll::TILE temp_ship_tile;
                     int temp_state = 0;
@@ -1261,14 +1305,19 @@ void LoadGame()
                     save >> temp_state;
                     temp_ship_tile.state = static_cast<dll::content>(temp_state);
 
-                    vPl2Ships.push_back(dll::ShipFactory(dll::ships::small_ship, &temp_ship_tile, 2,
-                        static_cast<dll::dirs>(temp_dir), *grid2));
-                    vPl2Ships.back()->set_ship_healt(temp_health);
+                    temp_ship_array[k] = temp_ship_tile;
                 }
+                vPl2Ships.push_back(dll::ShipFactory(dll::ships::small_ship, temp_ship_array, 2,
+                    static_cast<dll::dirs>(temp_dir), *grid2));
+                vPl2Ships.back()->set_ship_healt(temp_health);
+            }
                 break;
 
             case dll::ships::mid_ship1:
-                for (int i = 0; i < 3; ++i)
+            {
+                dll::TILE temp_ship_array[3]{};
+
+                for (int k = 0; k < 3; ++k)
                 {
                     dll::TILE temp_ship_tile;
                     int temp_state = 0;
@@ -1284,14 +1333,19 @@ void LoadGame()
                     save >> temp_state;
                     temp_ship_tile.state = static_cast<dll::content>(temp_state);
 
-                    vPl2Ships.push_back(dll::ShipFactory(dll::ships::mid_ship1, &temp_ship_tile, 3,
-                        static_cast<dll::dirs>(temp_dir), *grid2));
-                    vPl2Ships.back()->set_ship_healt(temp_health);
+                    temp_ship_array[k] = temp_ship_tile;
                 }
+                vPl2Ships.push_back(dll::ShipFactory(dll::ships::mid_ship1, temp_ship_array, 3,
+                    static_cast<dll::dirs>(temp_dir), *grid2));
+                vPl2Ships.back()->set_ship_healt(temp_health);
+            }
                 break;
 
             case dll::ships::mid_ship2:
-                for (int i = 0; i < 3; ++i)
+            {
+                dll::TILE temp_ship_array[3]{};
+
+                for (int k = 0; k < 3; ++k)
                 {
                     dll::TILE temp_ship_tile;
                     int temp_state = 0;
@@ -1307,14 +1361,19 @@ void LoadGame()
                     save >> temp_state;
                     temp_ship_tile.state = static_cast<dll::content>(temp_state);
 
-                    vPl2Ships.push_back(dll::ShipFactory(dll::ships::mid_ship2, &temp_ship_tile, 3,
-                        static_cast<dll::dirs>(temp_dir), *grid2));
-                    vPl2Ships.back()->set_ship_healt(temp_health);
+                    temp_ship_array[k] = temp_ship_tile;
                 }
+                vPl2Ships.push_back(dll::ShipFactory(dll::ships::mid_ship2, temp_ship_array, 3,
+                    static_cast<dll::dirs>(temp_dir), *grid2));
+                vPl2Ships.back()->set_ship_healt(temp_health);
+            }
                 break;
 
             case dll::ships::big_ship1:
-                for (int i = 0; i < 4; ++i)
+            {
+                dll::TILE temp_ship_array[4]{};
+
+                for (int k = 0; k < 4; ++k)
                 {
                     dll::TILE temp_ship_tile;
                     int temp_state = 0;
@@ -1330,14 +1389,19 @@ void LoadGame()
                     save >> temp_state;
                     temp_ship_tile.state = static_cast<dll::content>(temp_state);
 
-                    vPl2Ships.push_back(dll::ShipFactory(dll::ships::big_ship1, &temp_ship_tile, 4,
-                        static_cast<dll::dirs>(temp_dir), *grid2));
-                    vPl2Ships.back()->set_ship_healt(temp_health);
+                    temp_ship_array[k] = temp_ship_tile;
                 }
+                vPl2Ships.push_back(dll::ShipFactory(dll::ships::big_ship1, temp_ship_array, 4,
+                    static_cast<dll::dirs>(temp_dir), *grid2));
+                vPl2Ships.back()->set_ship_healt(temp_health);
+            }
                 break;
 
             case dll::ships::big_ship2:
-                for (int i = 0; i < 4; ++i)
+            {
+                dll::TILE temp_ship_array[4]{};
+
+                for (int k = 0; k < 4; ++k)
                 {
                     dll::TILE temp_ship_tile;
                     int temp_state = 0;
@@ -1353,10 +1417,12 @@ void LoadGame()
                     save >> temp_state;
                     temp_ship_tile.state = static_cast<dll::content>(temp_state);
 
-                    vPl2Ships.push_back(dll::ShipFactory(dll::ships::big_ship2, &temp_ship_tile, 4,
-                        static_cast<dll::dirs>(temp_dir), *grid2));
-                    vPl2Ships.back()->set_ship_healt(temp_health);
+                    temp_ship_array[k] = temp_ship_tile;
                 }
+                vPl2Ships.push_back(dll::ShipFactory(dll::ships::big_ship2, temp_ship_array, 4,
+                    static_cast<dll::dirs>(temp_dir), *grid2));
+                vPl2Ships.back()->set_ship_healt(temp_health);
+            }
                 break;
             }
         }
@@ -1433,33 +1499,41 @@ INT_PTR CALLBACK DlgProc(HWND hwnd, UINT ReceivedMsg, WPARAM wParam, LPARAM lPar
         break;
 
     case WM_COMMAND:
-        if (first_player_turn)
+        switch (LOWORD(wParam))
         {
-            if (GetDlgItemText(hwnd, IDC_NAME, player1, 16) < 1)
+        case IDCANCEL:
+            EndDialog(hwnd, IDCANCEL);
+            break;
+
+        case IDOK:
+            if (first_player_turn)
             {
-                if (sound)mciSendString(L"play .\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
-                wcscpy_s(player1, L"МЪртинчУ");
-                MessageBox(bHwnd, L"Ха, ха, ха ! Забрави си името !", L"Забраватор !", MB_OK | MB_APPLMODAL);
-                EndDialog(hwnd, IDCANCEL);
+                if (GetDlgItemText(hwnd, IDC_NAME, player1, 16) < 1)
+                {
+                    if (sound)mciSendString(L"play .\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
+                    wcscpy_s(player1, L"МЪртинчУ");
+                    MessageBox(bHwnd, L"Ха, ха, ха ! Забрави си името !", L"Забраватор !", MB_OK | MB_APPLMODAL);
+                    EndDialog(hwnd, IDCANCEL);
+                    break;
+                }
+                name1_set = true;
+                EndDialog(hwnd, IDOK);
                 break;
             }
-            name1_set = true;
-            EndDialog(hwnd, IDOK);
-            break;
-        }
-        else
-        {
-            if (GetDlgItemText(hwnd, IDC_NAME, player2, 16) < 1)
+            else
             {
-                if (sound)mciSendString(L"play .\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
-                wcscpy_s(player1, L"МЪртинчУ");
-                MessageBox(bHwnd, L"Ха, ха, ха ! Забрави си името !", L"Забраватор !", MB_OK | MB_APPLMODAL);
-                EndDialog(hwnd, IDCANCEL);
+                if (GetDlgItemText(hwnd, IDC_NAME, player2, 16) < 1)
+                {
+                    if (sound)mciSendString(L"play .\\res\\snd\\exclamation.wav", NULL, NULL, NULL);
+                    wcscpy_s(player1, L"МЪртинчУ");
+                    MessageBox(bHwnd, L"Ха, ха, ха ! Забрави си името !", L"Забраватор !", MB_OK | MB_APPLMODAL);
+                    EndDialog(hwnd, IDCANCEL);
+                    break;
+                }
+                name2_set = true;
+                EndDialog(hwnd, IDOK);
                 break;
             }
-            name2_set = true;
-            EndDialog(hwnd, IDOK);
-            break;
         }
         break;
     }
