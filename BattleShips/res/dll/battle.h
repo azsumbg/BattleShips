@@ -72,8 +72,6 @@ namespace dll
 		int GetTileRow(float y_position) const;
 	
 		bool IsAvailable(int tile_number)const;
-	
-		void Release();
 	};
 
 	class BATTLE_API SHIP
